@@ -114,8 +114,7 @@ Future<void> customDraggableTabBar({
             final width = context.isTablet && !fullWidth
                 ? switch (location) {
                     null => 100,
-                    != '/MangaLibrary' &&
-                        != '/AnimeLibrary' &&
+                    != '/AnimeLibrary' &&
                         != '/history' &&
                         != '/browse' &&
                         != '/more' =>

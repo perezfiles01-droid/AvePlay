@@ -123,9 +123,8 @@ class FullScreenReaderState extends _$FullScreenReaderState {
 @riverpod
 class NavigationOrderState extends _$NavigationOrderState {
   final items = [
-    '/MangaLibrary',
+    '/home',
     '/AnimeLibrary',
-    '/NovelLibrary',
     '/updates',
     '/history',
     '/browse',
@@ -141,6 +140,17 @@ class NavigationOrderState extends _$NavigationOrderState {
   }
 
   List<String> _checkMissingItems(List<String> navigationOrder) {
+    // Drop the retired manga and novel libraries from orders saved by older
+    // versions.
+    navigationOrder.removeWhere(
+      (e) => e == '/NovelLibrary' || e == '/MangaLibrary',
+    );
+    // Home leads the bar on a fresh install, so it has to lead it on an
+    // upgrade too. Appending it with the rest would bury the landing tab at
+    // the far end for everyone who already had a saved order.
+    if (!navigationOrder.contains('/home')) {
+      navigationOrder.insert(0, '/home');
+    }
     navigationOrder.addAll(
       items.where((e) => !navigationOrder.contains(e)).toList(),
     );
@@ -155,28 +165,37 @@ class NavigationOrderState extends _$NavigationOrderState {
 
 @riverpod
 class HideItemsState extends _$HideItemsState {
+  /// The app is anime-only: the manga and novel libraries were removed, so
+  /// they stay hidden regardless of what a previously saved setting says.
+  static const _removed = ['/MangaLibrary', '/NovelLibrary'];
+
+  static List<String> _withRemovedHidden(List<String> values) => [
+    ...values.where((e) => !_removed.contains(e)),
+    ..._removed,
+  ];
+
   @override
   List<String> build() {
-    return settingsRepository.current.hideItems ?? ['/trackerLibrary'];
+    return _withRemovedHidden(
+      settingsRepository.current.hideItems ?? ['/trackerLibrary'],
+    );
   }
 
   void set(List<String> values) {
-    state = values;
-    settingsRepository.update((s) => s.hideItems = values);
+    state = _withRemovedHidden(values);
+    settingsRepository.update((s) => s.hideItems = state);
   }
 }
 
 @riverpod
 class MergeLibraryNavMobileState extends _$MergeLibraryNavMobileState {
+  /// Always off: the switcher exists to fold several libraries into one nav
+  /// entry, and anime is the only library left. Honouring a saved `true` here
+  /// would replace that sole entry with a switcher onto itself.
   @override
-  bool build() {
-    return settingsRepository.current.mergeLibraryNavMobile ?? false;
-  }
+  bool build() => false;
 
-  void set(bool value) {
-    state = value;
-    settingsRepository.update((s) => s.mergeLibraryNavMobile = value);
-  }
+  void set(bool value) {}
 }
 
 @riverpod

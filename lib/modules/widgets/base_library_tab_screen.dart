@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mangayomi/models/manga.dart';
-import 'package:mangayomi/modules/main_view/providers/tv_mode_provider.dart';
 import 'package:mangayomi/modules/library/widgets/search_text_form_field.dart';
 import 'package:mangayomi/modules/more/settings/reader/providers/reader_state_provider.dart';
 import 'package:mangayomi/modules/widgets/tv_pill.dart';
@@ -39,14 +38,6 @@ abstract class BaseLibraryTabScreenState<T extends ConsumerStatefulWidget>
     hideItems = ref.read(hideItemsStateProvider);
 
     visibleTabTypes = hiddenItemTypes(hideItems);
-
-    // Anime-only layout: only the anime tab (hides manga/novel in History,
-    // Updates, and any other screen built on this base).
-    if (ref.read(animeOnlyTvModeProvider)) {
-      visibleTabTypes = visibleTabTypes
-          .where((t) => t == ItemType.anime)
-          .toList();
-    }
 
     tabController = TabController(length: visibleTabTypes.length, vsync: this);
 

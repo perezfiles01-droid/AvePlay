@@ -431,9 +431,8 @@ class _MyAppState extends ConsumerState<MyApp>
         case "add-repo":
           final repoName = uri.queryParameters["repo_name"];
           final repoUrl = uri.queryParameters["repo_url"];
-          final mangaRepoUrls = uri.queryParametersAll["manga_url"];
+          // Anime-only: a repo link's manga_url / novel_url are ignored.
           final animeRepoUrls = uri.queryParametersAll["anime_url"];
-          final novelRepoUrls = uri.queryParametersAll["novel_url"];
           final context = navigatorKey.currentContext;
           if (context == null || !context.mounted) return;
           final l10n = context.l10n;
@@ -462,9 +461,7 @@ class _MyAppState extends ConsumerState<MyApp>
                       if (context.mounted) Navigator.of(context).pop();
 
                       final validUrls = await _checkValidUrls([
-                        ...mangaRepoUrls ?? [],
                         ...animeRepoUrls ?? [],
-                        ...novelRepoUrls ?? [],
                       ]);
 
                       if (!validUrls) {
@@ -492,9 +489,7 @@ class _MyAppState extends ConsumerState<MyApp>
                             .set(updated);
                       }
 
-                      addRepos(ItemType.manga, mangaRepoUrls);
                       addRepos(ItemType.anime, animeRepoUrls);
-                      addRepos(ItemType.novel, novelRepoUrls);
                       botToast(l10n.repo_added);
                     },
                   ),

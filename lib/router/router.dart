@@ -31,7 +31,6 @@ import 'package:mangayomi/modules/more/settings/player/player_decoder_screen.dar
 import 'package:mangayomi/modules/more/settings/player/player_overview_screen.dart';
 import 'package:mangayomi/modules/more/settings/reader/providers/reader_state_provider.dart';
 import 'package:mangayomi/modules/more/statistics/statistics_screen.dart';
-import 'package:mangayomi/modules/novel/novel_reader_view.dart';
 import 'package:mangayomi/modules/tracker_library/tracker_library_screen.dart';
 import 'package:mangayomi/modules/updates/updates_screen.dart';
 import 'package:mangayomi/modules/more/categories/categories_screen.dart';
@@ -47,6 +46,7 @@ import 'package:mangayomi/modules/browse/extension/extension_lang.dart';
 import 'package:mangayomi/modules/browse/global_search/global_search_screen.dart';
 import 'package:mangayomi/modules/main_view/main_screen.dart';
 import 'package:mangayomi/modules/history/history_screen.dart';
+import 'package:mangayomi/modules/home/home_screen.dart';
 import 'package:mangayomi/modules/library/library_screen.dart';
 import 'package:mangayomi/modules/manga/detail/manga_detail_main.dart';
 import 'package:mangayomi/modules/manga/home/manga_home_screen.dart';
@@ -145,25 +145,12 @@ class RouterNotifier extends ChangeNotifier {
               children: children,
             ),
       branches: [
-        _branch(
-          _genericRoute<String?>(
-            name: "MangaLibrary",
-            builder: (id) =>
-                LibraryScreen(itemType: ItemType.manga, presetInput: id),
-          ),
-        ),
+        _branch(_genericRoute(name: "home", child: const HomeScreen())),
         _branch(
           _genericRoute<String?>(
             name: "AnimeLibrary",
             builder: (id) =>
                 LibraryScreen(itemType: ItemType.anime, presetInput: id),
-          ),
-        ),
-        _branch(
-          _genericRoute<String?>(
-            name: "NovelLibrary",
-            builder: (id) =>
-                LibraryScreen(itemType: ItemType.novel, presetInput: id),
           ),
         ),
         _branch(
@@ -197,11 +184,6 @@ class RouterNotifier extends ChangeNotifier {
       name: "animePlayerView",
       builder: (id) =>
           AnimePlayerView(key: ValueKey('animePlayer-$id'), episodeId: id),
-    ),
-    _genericRoute<int>(
-      name: "novelReaderView",
-      builder: (id) =>
-          NovelReaderView(key: ValueKey('novelReader-$id'), chapterId: id),
     ),
     _genericRoute<ItemType>(
       name: "ExtensionLang",

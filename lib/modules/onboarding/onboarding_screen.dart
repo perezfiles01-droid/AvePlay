@@ -26,11 +26,12 @@ import 'package:mangayomi/utils/platform_utils.dart';
 
 /// The nav destination for each library, so a library the user does not read
 /// can be kept out of the bar.
-const _libraryRoutes = {
-  ItemType.manga: '/MangaLibrary',
-  ItemType.anime: '/AnimeLibrary',
-  ItemType.novel: '/NovelLibrary',
-};
+const _libraryRoutes = {ItemType.anime: '/AnimeLibrary'};
+
+/// The libraries the reader can be offered. The app is anime-only now, so this
+/// is the one, even though ItemType still carries manga and novel for the
+/// entries and backups already on disk.
+const _libraryTypes = [ItemType.anime];
 
 /// Shown once, on the first launch of a fresh install.
 ///
@@ -102,14 +103,11 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   /// the movement feel arbitrary.
   bool _forward = true;
 
-  /// A television only ever reads anime, so the question is not asked there
-  /// and this is the answer. Everywhere else it starts with everything ticked
-  /// and the reader narrows it.
-  final Set<ItemType> _libraries = isTv
-      ? {ItemType.anime}
-      : {...ItemType.values};
+  /// Anime is the only library, so the question is never asked and this is
+  /// the answer.
+  final Set<ItemType> _libraries = {ItemType.anime};
   bool _mergeLibraries = false;
-  ItemType _repoType = ItemType.manga;
+  ItemType _repoType = ItemType.anime;
 
   bool _adding = false;
   String? _error;
@@ -174,15 +172,12 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
     // registers after the router, so it gets first refusal for as long as it
     // is on screen.
     WidgetsBinding.instance.addObserver(this);
-    // A television never visits the library step, so the step that would have
-    // written the choice never runs. Write it here instead, or the answer the
-    // flow made on the reader's behalf would be silently dropped and manga and
-    // novel would stay in the rail.
-    if (isTv) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _applyLibraries();
-      });
-    }
+    // The library step never runs now, so the step that would have written
+    // the choice never runs either. Write it here instead, or the answer the
+    // flow made on the reader's behalf would be silently dropped.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _applyLibraries();
+    });
   }
 
   @override
@@ -217,22 +212,21 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   /// The chosen libraries in the order the nav bar shows them, so the
   /// repository step offers them the same way round.
   List<ItemType> get _chosen =>
-      ItemType.values.where(_libraries.contains).toList();
+      _libraryTypes.where(_libraries.contains).toList();
 
   /// The steps that will actually be shown, in order.
   ///
   /// Not a constant: the arrange step drops out for a single library or a wide
   /// window, so the flow is two steps long as often as three.
   List<_Step> get _visibleSteps => [
-    if (!isTv) _Step.libraries,
     if (_shouldArrangeBar) _Step.navigation,
     _Step.repository,
   ];
 
-  /// Where the flow starts. A television skips straight to the source, because
-  /// the two questions before it have one answer each there: anime, and a rail
-  /// rather than a bar.
-  static _Step get _firstStep => isTv ? _Step.repository : _Step.libraries;
+  /// Where the flow starts. With one library and nothing to arrange, both
+  /// questions before the source have a single answer, so the flow opens on
+  /// the source.
+  static _Step get _firstStep => _Step.repository;
 
   /// Whether the arrange step has anything to offer.
   ///
@@ -353,7 +347,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
               .where((name) => name.isNotEmpty)
               .toList();
           _foundByType = {
-            for (final type in ItemType.values)
+            for (final type in _libraryTypes)
               if (mine.any((manga) => manga.itemType == type))
                 type: mine.where((manga) => manga.itemType == type).length,
           };
@@ -400,7 +394,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
 
   /// Whether any library has a repository, asked after a restore that may have
   /// brought some in.
-  bool get _hasAnyRepo => ItemType.values.any(
+  bool get _hasAnyRepo => _libraryTypes.any(
     (type) => ref.read(extensionsRepoStateProvider(type)).isNotEmpty,
   );
 
@@ -673,7 +667,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   List<Widget> _stepBody(AppLocalizations l10n) => switch (_step) {
     _Step.libraries => [
       _ChoiceRow<ItemType>(
-        values: ItemType.values,
+        values: _libraryTypes,
         label: (type) => _libraryLabel(l10n, type),
         isSelected: _libraries.contains,
         onTap: (type) => setState(() {

@@ -30,7 +30,9 @@ class _CreateExtensionState extends State<CreateExtension> {
       : _sourceTypeValues
             .indexOf(widget.editSource!.typeSource ?? "")
             .clamp(0, _sourceTypeValues.length - 1);
-  late int _itemTypeIndex = widget.editSource?.itemType.index ?? 0;
+  // Anime is the only item type on offer, so a source saved as manga or
+  // novel would otherwise index past the end of the label list.
+  int _itemTypeIndex = 0;
   late int _languageIndex = switch (widget.editSource?.sourceCodeLanguage) {
     SourceCodeLanguage.javascript => 1,
     SourceCodeLanguage.lnreader => 2,
@@ -47,7 +49,8 @@ class _CreateExtensionState extends State<CreateExtension> {
       l10n.source_type_multi,
       l10n.source_type_torrent,
     ];
-    final itemTypeLabels = [l10n.manga, l10n.anime, l10n.novel];
+    // The app is anime-only, so anime is the only source type on offer.
+    final itemTypeLabels = [l10n.anime];
     final languageLabels = [
       l10n.source_language_dart,
       l10n.source_language_javascript,

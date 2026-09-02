@@ -20,7 +20,6 @@ import 'package:mangayomi/modules/widgets/error_state.dart';
 import 'package:mangayomi/modules/widgets/loading_icon.dart';
 import 'package:mangayomi/services/fetch_item_sources.dart';
 import 'package:mangayomi/modules/main_view/providers/migration.dart';
-import 'package:mangayomi/modules/main_view/providers/tv_mode_provider.dart';
 import 'package:mangayomi/modules/more/about/providers/check_for_update.dart';
 import 'package:mangayomi/modules/more/data_and_storage/providers/auto_backup.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
@@ -30,13 +29,6 @@ import 'package:mangayomi/services/sync_server.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:mangayomi/modules/manga/detail/providers/state_providers.dart';
 import 'package:mangayomi/modules/more/providers/incognito_mode_state_provider.dart';
-
-final libLocationRegex = RegExp(r"^/(Manga|Anime|Novel)Library$");
-
-/// Nav destinations kept off the anime-only TV layout (the manga & novel
-/// libraries). True means "keep this destination".
-bool _isNotHiddenLibOnTv(String nav) =>
-    nav != "/MangaLibrary" && nav != "/NovelLibrary";
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key, required this.child});
@@ -95,11 +87,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         .autoSyncFrequency;
     final hiddenItems = ref.read(hideItemsStateProvider);
 
-    // On the anime-only TV layout, never land on a hidden manga/novel library.
-    final order = ref.read(animeOnlyTvModeProvider)
-        ? _navigationOrder.where(_isNotHiddenLibOnTv).toList()
-        : _navigationOrder;
-    final visible = order.where((e) => !hiddenItems.contains(e)).toList();
+    final visible = _navigationOrder
+        .where((e) => !hiddenItems.contains(e))
+        .toList();
     _defaultLocation = visible.isNotEmpty ? visible.first : "/AnimeLibrary";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -153,7 +143,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     // paint and the initial library queries.
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        for (var type in ItemType.values) {
+        // Anime is the only item type left, so it is the only repo fetched.
+        for (var type in const [ItemType.anime]) {
           ref.read(
             fetchItemSourcesListProvider(
               id: null,
@@ -216,7 +207,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   int currentIndex = 0;
-  bool isLibSwitch = false;
   @override
   Widget build(BuildContext context) {
     ref.listen<Locale>(l10nLocaleStateProvider, (previous, next) {
@@ -228,7 +218,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final route = GoRouter.of(context);
     final navigationOrder = ref.watch(navigationOrderStateProvider);
     final hideItems = ref.watch(hideItemsStateProvider);
-    final mergeLibraryNavMobile = ref.watch(mergeLibraryNavMobileStateProvider);
     final location = ref.watch(routerCurrentLocationStateProvider);
 
     return ref
@@ -237,61 +226,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           data: (_) => Consumer(
             builder: (context, ref, child) {
               final isReadingScreen = _isReadingScreen(location);
-              bool uniqueSwitch = false;
-              List<String> dest = !context.isTablet && isLibSwitch
-                  ? [
-                      "_disableLibSwitch",
-                      ...navigationOrder.where(
-                        (nav) => libLocationRegex.hasMatch(nav),
-                      ),
-                    ].where((nav) => !hideItems.contains(nav)).toList()
-                  : navigationOrder
-                        .where((nav) => !hideItems.contains(nav))
-                        .toList();
+              final List<String> dest = navigationOrder
+                  .where((nav) => !hideItems.contains(nav))
+                  .toList();
 
-              // Anime-only TV layout: drop the manga & novel library tabs.
-              if (ref.watch(animeOnlyTvModeProvider)) {
-                dest = dest.where(_isNotHiddenLibOnTv).toList();
+              final currentIdx = dest.indexOf(location ?? _defaultLocation);
+              if (currentIdx != -1) {
+                currentIndex = currentIdx;
               }
-
-              if (mergeLibraryNavMobile && !context.isTablet && !isLibSwitch) {
-                dest = dest
-                    .map((nav) {
-                      if ([
-                        "/MangaLibrary",
-                        "/AnimeLibrary",
-                        "/NovelLibrary",
-                      ].contains(nav)) {
-                        if (uniqueSwitch) return null;
-                        uniqueSwitch = true;
-                        return "_enableLibSwitch";
-                      }
-                      return nav;
-                    })
-                    .nonNulls
-                    .toList();
-              }
-
-              if (isLibSwitch &&
-                  (currentIndex >= dest.length ||
-                      !libLocationRegex.hasMatch(location ?? ""))) {
+              // The bar asserts on a selected index past its last destination.
+              // Removing the manga library shortened this list, so an index
+              // carried over from a previous version can point off the end.
+              if (currentIndex >= dest.length) {
                 currentIndex = 0;
-              } else {
-                String? libLocation;
-                if (mergeLibraryNavMobile &&
-                    !context.isTablet &&
-                    !isLibSwitch) {
-                  libLocation = location?.replaceAll(
-                    libLocationRegex,
-                    "_enableLibSwitch",
-                  );
-                }
-                int currentIdx = dest.indexOf(
-                  libLocation ?? location ?? _defaultLocation,
-                );
-                if (currentIdx != -1) {
-                  currentIndex = currentIdx;
-                }
               }
 
               final incognitoMode = ref.watch(incognitoModeStateProvider);
@@ -333,19 +280,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                               ref: ref,
                               buildNavigationWidgetsMobile:
                                   _buildNavigationWidgetsMobile,
-                              onDestinationSelected: (destination) {
-                                if (destination == "_enableLibSwitch") {
-                                  setState(() {
-                                    isLibSwitch = true;
-                                  });
-                                } else if (destination == "_disableLibSwitch") {
-                                  setState(() {
-                                    isLibSwitch = false;
-                                  });
-                                } else {
-                                  route.go(destination);
-                                }
-                              },
+                              onDestinationSelected: route.go,
                             ),
                     ),
                   ),
@@ -368,9 +303,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   static bool _isReadingScreen(String? location) {
-    return location == '/mangaReaderView' ||
-        location == '/animePlayerView' ||
-        location == '/novelReaderView';
+    return location == '/mangaReaderView' || location == '/animePlayerView';
   }
 
   List<NavigationRailDestination> _buildNavigationWidgetsDesktop(
@@ -389,15 +322,15 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       null,
     );
 
-    if (dest.contains("/MangaLibrary")) {
-      destinations[dest.indexOf("/MangaLibrary")] = NavigationRailDestination(
+    if (dest.contains("/home")) {
+      destinations[dest.indexOf("/home")] = NavigationRailDestination(
         // Even breathing room between tabs on TV; null off-TV.
         padding: isTv ? const EdgeInsets.symmetric(vertical: 6) : null,
-        selectedIcon: const Icon(Icons.collections_bookmark),
-        icon: const Icon(Icons.collections_bookmark_outlined),
-        label: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Text(l10n.manga),
+        selectedIcon: const Icon(Icons.home),
+        icon: const Icon(Icons.home_outlined),
+        label: const Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Text("Home"),
         ),
       );
     }
@@ -410,18 +343,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         label: Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Text(l10n.anime),
-        ),
-      );
-    }
-    if (dest.contains("/NovelLibrary")) {
-      destinations[dest.indexOf("/NovelLibrary")] = NavigationRailDestination(
-        // Even breathing room between tabs on TV; null off-TV.
-        padding: isTv ? const EdgeInsets.symmetric(vertical: 6) : null,
-        selectedIcon: const Icon(Icons.local_library),
-        icon: const Icon(Icons.local_library_outlined),
-        label: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Text(l10n.novel),
         ),
       );
     }
@@ -525,25 +446,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const SizedBox.shrink(),
     );
 
-    if (dest.contains("_disableLibSwitch")) {
-      destinations[dest.indexOf("_disableLibSwitch")] = NavigationDestination(
-        selectedIcon: const Icon(Icons.arrow_back),
-        icon: const Icon(Icons.arrow_back),
-        label: l10n.go_back,
-      );
-    }
-    if (dest.contains("_enableLibSwitch")) {
-      destinations[dest.indexOf("_enableLibSwitch")] = NavigationDestination(
-        selectedIcon: const Icon(Icons.collections_bookmark),
-        icon: const Icon(Icons.collections_bookmark_outlined),
-        label: l10n.library,
-      );
-    }
-    if (dest.contains("/MangaLibrary")) {
-      destinations[dest.indexOf("/MangaLibrary")] = NavigationDestination(
-        selectedIcon: const Icon(Icons.collections_bookmark),
-        icon: const Icon(Icons.collections_bookmark_outlined),
-        label: l10n.manga,
+    if (dest.contains("/home")) {
+      destinations[dest.indexOf("/home")] = NavigationDestination(
+        selectedIcon: const Icon(Icons.home),
+        icon: const Icon(Icons.home_outlined),
+        label: "Home",
       );
     }
     if (dest.contains("/AnimeLibrary")) {
@@ -551,13 +458,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         selectedIcon: const Icon(Icons.video_collection),
         icon: const Icon(Icons.video_collection_outlined),
         label: l10n.anime,
-      );
-    }
-    if (dest.contains("/NovelLibrary")) {
-      destinations[dest.indexOf("/NovelLibrary")] = NavigationDestination(
-        selectedIcon: const Icon(Icons.local_library),
-        icon: const Icon(Icons.local_library_outlined),
-        label: l10n.novel,
       );
     }
     if (dest.contains("/updates")) {
@@ -899,9 +799,8 @@ class _TabletLayoutState extends State<_TabletLayout> {
     if (isLongPressed) return 0;
 
     const validLocations = {
-      '/MangaLibrary',
+      '/home',
       '/AnimeLibrary',
-      '/NovelLibrary',
       '/history',
       '/updates',
       '/browse',
@@ -969,9 +868,8 @@ class _MobileBottomNavigation extends StatelessWidget {
     if (isLongPressed) return 0;
 
     const validLocations = {
-      '/MangaLibrary',
+      '/home',
       '/AnimeLibrary',
-      '/NovelLibrary',
       '/history',
       '/updates',
       '/browse',
@@ -995,9 +893,9 @@ class _ExtensionBadgeWidget extends ConsumerWidget {
 
     return StreamBuilder(
       stream: sourceRepository.watchActiveExcludingHiddenItemTypes(
-        hideManga: hideItems.contains("/MangaLibrary"),
+        hideManga: true,
         hideAnime: hideItems.contains("/AnimeLibrary"),
-        hideNovel: hideItems.contains("/NovelLibrary"),
+        hideNovel: true,
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -1033,9 +931,9 @@ class _UpdatesBadgeWidget extends ConsumerWidget {
 
     return StreamBuilder(
       stream: updateRepository.watchUnreadExcludingHiddenItemTypes(
-        hideManga: hideItems.contains("/MangaLibrary"),
+        hideManga: true,
         hideAnime: hideItems.contains("/AnimeLibrary"),
-        hideNovel: hideItems.contains("/NovelLibrary"),
+        hideNovel: true,
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {

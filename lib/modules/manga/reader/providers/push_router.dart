@@ -21,8 +21,8 @@ Future<void> pushMangaReaderView({
       case ItemType.anime:
         await context.push('/animePlayerView', extra: chapter.id!);
         break;
+      // The novel reader was removed; novel entries have nothing to open.
       case ItemType.novel:
-        await context.push('/novelReaderView', extra: chapter.id!);
         break;
     }
   }
@@ -39,8 +39,8 @@ void pushReplacementMangaReaderView({
     case ItemType.anime:
       context.pushReplacement('/animePlayerView', extra: chapter.id!);
       break;
+    // The novel reader was removed; novel entries have nothing to open.
     case ItemType.novel:
-      context.pushReplacement('/novelReaderView', extra: chapter.id!);
       break;
   }
 }
