@@ -4,6 +4,14 @@ on:
   push:
     tags:
       - v*
+  # Lets a release be cut without pushing a tag first: the tag is created by
+  # the publish step from the name given here. Same jobs, same artifacts.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build and publish (e.g. v1.2.2)"
+        required: true
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -11,6 +19,10 @@ concurrency:
 
 env:
   ZSIGN_VERSION: "0.7"
+  # The tag being released. On a tag push that is the tag; on a manual run it
+  # is the name given above, since github.ref_name would be the branch and
+  # every artifact would be called "Mangayomi-main-...".
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   build-and-release-android-apks:
@@ -64,14 +76,14 @@ jobs:
           export GRADLE_OPTS="-Xmx4096m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC"
           flutter build apk --release --split-per-abi --verbose
           cd build/app/outputs/flutter-apk
-          mv app-arm64-v8a-release.apk Mangayomi-${{ github.ref_name }}-android-arm64-v8a.apk
-          mv app-armeabi-v7a-release.apk Mangayomi-${{ github.ref_name }}-android-armeabi-v7a.apk
-          mv app-x86_64-release.apk Mangayomi-${{ github.ref_name }}-android-x86_64.apk
+          mv app-arm64-v8a-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-arm64-v8a.apk
+          mv app-armeabi-v7a-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-armeabi-v7a.apk
+          mv app-x86_64-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-x86_64.apk
 
       - name: upload artifact android apks
         uses: actions/upload-artifact@v4
         with:
-          name: Mangayomi-${{ github.ref_name }}-android
+          name: Mangayomi-${{ env.RELEASE_TAG }}-android
           path: "build/app/outputs/flutter-apk/Mangayomi-*.apk"
 
   # Dedicated Android TV build: same app, but with TV branding swapped in (a
@@ -145,14 +157,14 @@ jobs:
           export GRADLE_OPTS="-Xmx4096m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC"
           flutter build apk --release --split-per-abi --verbose
           cd build/app/outputs/flutter-apk
-          mv app-arm64-v8a-release.apk Mangayomi-${{ github.ref_name }}-android-tv-arm64-v8a.apk
-          mv app-armeabi-v7a-release.apk Mangayomi-${{ github.ref_name }}-android-tv-armeabi-v7a.apk
-          mv app-x86_64-release.apk Mangayomi-${{ github.ref_name }}-android-tv-x86_64.apk
+          mv app-arm64-v8a-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-tv-arm64-v8a.apk
+          mv app-armeabi-v7a-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-tv-armeabi-v7a.apk
+          mv app-x86_64-release.apk Mangayomi-${{ env.RELEASE_TAG }}-android-tv-x86_64.apk
 
       - name: upload artifact android tv apks
         uses: actions/upload-artifact@v4
         with:
-          name: Mangayomi-${{ github.ref_name }}-android-tv
+          name: Mangayomi-${{ env.RELEASE_TAG }}-android-tv
           path: "build/app/outputs/flutter-apk/Mangayomi-*android-tv*.apk"
 
   build-and-release-ios-ipa:
@@ -206,12 +218,12 @@ jobs:
           mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
           ./zsign -f -k ./certificate.p12 -p "$P12_PASSWORD" -m ./profile.mobileprovision ./build/ios/iphoneos/Payload/Runner.app
           cd build/ios/iphoneos
-          zip -r Mangayomi-${{ github.ref_name }}-ios.ipa Payload
+          zip -r Mangayomi-${{ env.RELEASE_TAG }}-ios.ipa Payload
 
       - name: Upload artifact iOS IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Mangayomi-${{ github.ref_name }}-ios
+          name: Mangayomi-${{ env.RELEASE_TAG }}-ios
           path: "build/ios/iphoneos/Mangayomi-*.ipa"
 
   publish-release:
@@ -236,6 +248,11 @@ jobs:
           artifacts: "release-assets/*"
           generateReleaseNotes: true
           allowUpdates: true
+          # Named explicitly so a manual run publishes under the tag it was
+          # given and creates it against the commit that was built, rather
+          # than defaulting to the branch it ran from.
+          tag: ${{ env.RELEASE_TAG }}
+          commit: ${{ github.sha }}
 
   ios-source-build:
     needs: publish-release
