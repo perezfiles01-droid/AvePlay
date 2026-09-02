@@ -113,17 +113,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final recent = [...entries]
       ..sort((a, b) => (b.dateAdded ?? 0).compareTo(a.dateAdded ?? 0));
 
-    final localHero = continueList.isNotEmpty
-        ? continueList.first
-        : (recent.isNotEmpty ? recent.first : null);
+    // The hero is the thing you were last watching, and only that. Nothing
+    // watched yet means no hero at all: a banner for something you have never
+    // opened has nothing to continue.
+    final hero = continueList.firstOrNull;
 
-    // Nothing watched and nothing in the library: the hero falls back to the
-    // top trending title, so a fresh install still opens on something.
     final trending = ref.watch(trendingAnimeProvider);
-    final remoteHero = localHero == null
-        ? trending.asData?.value.firstOrNull
-        : null;
-
     final (season, year) = ref.watch(selectedSeasonProvider);
 
     // The bar floats over the hero, whose backdrop is dark in both themes, so
@@ -131,7 +126,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // theme they would be near-black on a light theme and disappear into the
     // artwork. With no hero there is nothing behind them and the theme's own
     // colour is right.
-    final hasHero = localHero != null || remoteHero != null;
+    final hasHero = hero != null;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -160,10 +155,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onRefresh: _refresh,
         child: CustomScrollView(
           slivers: [
-            if (localHero != null)
-              SliverToBoxAdapter(child: _LocalHero(manga: localHero))
-            else if (remoteHero != null)
-              SliverToBoxAdapter(child: _RemoteHero(media: remoteHero))
+            if (hero != null)
+              SliverToBoxAdapter(child: _ContinueHero(manga: hero))
             else
               const SliverToBoxAdapter(child: SizedBox(height: 90)),
             if (continueList.isNotEmpty)
@@ -518,93 +511,52 @@ void searchInSources(BuildContext context, DiscoveryMedia media) {
   context.push('/globalSearch', extra: (term, ItemType.anime));
 }
 
-/// The top banner for a library entry: blurred cover behind, poster and title
-/// in front, and a Resume button that picks up where you left off.
-class _LocalHero extends ConsumerWidget {
-  const _LocalHero({required this.manga});
+
+/// Formats a saved playback position for the hero's line under the title.
+String _fmtPosition(int ms) {
+  final d = Duration(milliseconds: ms);
+  final m = (d.inMinutes % 60).toString().padLeft(d.inHours > 0 ? 2 : 1, '0');
+  final s = (d.inSeconds % 60).toString().padLeft(2, '0');
+  return d.inHours > 0 ? '${d.inHours}:$m:$s' : '$m:$s';
+}
+
+/// The banner for the thing you were last watching: the cover filling the
+/// width behind a scrim, the title, the synopsis, and one button back into
+/// the episode you stopped on.
+///
+/// The synopsis comes off the library entry rather than from AniList. An entry
+/// you have watched has been opened, and opening it is what stores the
+/// description, so it is already on the device: no request to make, no title
+/// to match, and it still reads with the network off.
+class _ContinueHero extends ConsumerWidget {
+  const _ContinueHero({required this.manga});
 
   final Manga manga;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
     final image = resolveCoverImage(manga, ref);
     final resume = _resumeChapter(manga);
-    final unread = manga.chapters.where((c) => !(c.isRead ?? true)).length;
+    final positionMs = int.tryParse(resume?.lastPageRead ?? '') ?? 0;
 
-    return _HeroFrame(
-      backdrop: Image(image: image, fit: BoxFit.cover),
-      poster: Image(image: image, fit: BoxFit.cover),
-      title: manga.name ?? '',
-      subtitle: [
-        if ((resume?.name ?? '').isNotEmpty) resume!.name!,
-        if (unread > 0) '$unread new',
-      ].join('  ·  '),
-      action: FilledButton.icon(
-        onPressed: resume == null
-            ? null
-            : () => resume.pushToReaderView(context),
-        icon: const Icon(Icons.play_arrow, size: 20),
-        label: Text(l10n.resume),
-      ),
-    );
-  }
-}
+    // Episode name, then how far into it you were. Both are dropped when
+    // absent rather than left as an empty gap or a bare "0:00".
+    final meta = [
+      if ((resume?.name ?? '').isNotEmpty) resume!.name!,
+      if (positionMs > 0) _fmtPosition(positionMs),
+    ].join('  ·  ');
 
-/// The top banner on an install with nothing in the library yet: the top
-/// trending title, with a button into the sources that might carry it.
-class _RemoteHero extends StatelessWidget {
-  const _RemoteHero({required this.media});
+    final synopsis = (manga.description ?? '').trim();
 
-  final DiscoveryMedia media;
-
-  @override
-  Widget build(BuildContext context) {
-    final backdropUrl = media.bannerImage ?? media.coverImage;
-    return _HeroFrame(
-      backdrop: _RemoteImage(url: backdropUrl),
-      poster: _RemoteImage(url: media.coverImage),
-      title: media.title,
-      subtitle: [
-        'Trending now',
-        if (media.averageScore != null) '${media.averageScore}%',
-      ].join('  ·  '),
-      action: FilledButton.icon(
-        onPressed: () => searchInSources(context, media),
-        icon: const Icon(Icons.search, size: 20),
-        label: const Text('Find in sources'),
-      ),
-    );
-  }
-}
-
-/// The shared hero layout, so the library hero and the trending hero cannot
-/// drift apart.
-class _HeroFrame extends StatelessWidget {
-  const _HeroFrame({
-    required this.backdrop,
-    required this.poster,
-    required this.title,
-    required this.subtitle,
-    required this.action,
-  });
-
-  final Widget backdrop;
-  final Widget poster;
-  final String title;
-  final String subtitle;
-  final Widget action;
-
-  @override
-  Widget build(BuildContext context) {
     return SizedBox(
-      height: 330,
+      height: 360,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // The backdrop fades out at its own bottom edge rather than blending
-          // toward a background colour it would have to guess at, so it works
-          // in both themes.
+          // The cover fills the banner and is blurred behind the text, the way
+          // a key art still would be. It fades out at its own bottom edge
+          // rather than blending toward a background colour it would have to
+          // guess at, so it works in both themes.
           ShaderMask(
             blendMode: BlendMode.dstIn,
             shaderCallback: (rect) => const LinearGradient(
@@ -618,14 +570,14 @@ class _HeroFrame extends StatelessWidget {
               children: [
                 ImageFiltered(
                   imageFilter: ui.ImageFilter.blur(sigmaX: 26, sigmaY: 26),
-                  child: backdrop,
+                  child: Image(image: image, fit: BoxFit.cover),
                 ),
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0x66000000), Color(0xCC000000)],
+                      colors: [Color(0x59000000), Color(0xD9000000)],
                     ),
                   ),
                 ),
@@ -639,7 +591,11 @@ class _HeroFrame extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(width: 96, height: 144, child: poster),
+                  child: SizedBox(
+                    width: 96,
+                    height: 144,
+                    child: Image(image: image, fit: BoxFit.cover),
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -648,19 +604,20 @@ class _HeroFrame extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        title,
+                        manga.name ?? '',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
+                          height: 1.15,
                         ),
                       ),
-                      if (subtitle.isNotEmpty) ...[
+                      if (meta.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          subtitle,
+                          meta,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -669,8 +626,34 @@ class _HeroFrame extends StatelessWidget {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 10),
-                      action,
+                      if (synopsis.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        // Cut with an ellipsis rather than scrolled: a scroll
+                        // area inside a banner competes with the page's own
+                        // scroll, and the detail page carries the full text.
+                        Text(
+                          synopsis,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: resume == null
+                            ? null
+                            : () => resume.pushToReaderView(context),
+                        icon: const Icon(Icons.play_arrow, size: 20),
+                        label: const Text('Continue Watching'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                        ),
+                      ),
                     ],
                   ),
                 ),

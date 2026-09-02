@@ -14,7 +14,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/services/crash_report.dart';
 import 'package:mangayomi/providers/storage_provider.dart';
-import 'package:mangayomi/utils/constant.dart';
 import 'package:mangayomi/utils/log/logger.dart';
 import 'package:mangayomi/utils/share.dart';
 import 'package:path/path.dart' as path;
@@ -39,13 +38,26 @@ class AboutScreen extends ConsumerWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Image.asset(
-                      appIconAssets[2],
-                      color: Theme.of(context).brightness == Brightness.light
-                          ? Colors.black
-                          : Colors.white,
-                      fit: BoxFit.cover,
+                    // The wordmark that replaced the logo image, matching the
+                    // one on More: same slot, same height, same theme-driven
+                    // black-on-light / white-on-dark tint.
+                    child: SizedBox(
                       height: 100,
+                      child: Center(
+                        child: Text(
+                          'JSP',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                ? Colors.black
+                                : Colors.white,
+                            fontSize: 64,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 4,
+                            height: 1,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Column(
