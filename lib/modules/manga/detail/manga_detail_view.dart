@@ -1555,11 +1555,8 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                                 extra: genre,
                                               );
                                               break;
+                                            // The novel library was removed.
                                             case ItemType.novel:
-                                              context.pushReplacement(
-                                                '/NovelLibrary',
-                                                extra: genre,
-                                              );
                                               break;
                                           }
                                         } else {

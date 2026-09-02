@@ -31,7 +31,6 @@ import 'package:mangayomi/modules/more/settings/player/player_decoder_screen.dar
 import 'package:mangayomi/modules/more/settings/player/player_overview_screen.dart';
 import 'package:mangayomi/modules/more/settings/reader/providers/reader_state_provider.dart';
 import 'package:mangayomi/modules/more/statistics/statistics_screen.dart';
-import 'package:mangayomi/modules/novel/novel_reader_view.dart';
 import 'package:mangayomi/modules/tracker_library/tracker_library_screen.dart';
 import 'package:mangayomi/modules/updates/updates_screen.dart';
 import 'package:mangayomi/modules/more/categories/categories_screen.dart';
@@ -161,13 +160,6 @@ class RouterNotifier extends ChangeNotifier {
         ),
         _branch(
           _genericRoute<String?>(
-            name: "NovelLibrary",
-            builder: (id) =>
-                LibraryScreen(itemType: ItemType.novel, presetInput: id),
-          ),
-        ),
-        _branch(
-          _genericRoute<String?>(
             name: "trackerLibrary",
             builder: (id) => TrackerLibraryScreen(presetInput: id),
           ),
@@ -197,11 +189,6 @@ class RouterNotifier extends ChangeNotifier {
       name: "animePlayerView",
       builder: (id) =>
           AnimePlayerView(key: ValueKey('animePlayer-$id'), episodeId: id),
-    ),
-    _genericRoute<int>(
-      name: "novelReaderView",
-      builder: (id) =>
-          NovelReaderView(key: ValueKey('novelReader-$id'), chapterId: id),
     ),
     _genericRoute<ItemType>(
       name: "ExtensionLang",

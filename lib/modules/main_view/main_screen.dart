@@ -31,12 +31,12 @@ import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:mangayomi/modules/manga/detail/providers/state_providers.dart';
 import 'package:mangayomi/modules/more/providers/incognito_mode_state_provider.dart';
 
-final libLocationRegex = RegExp(r"^/(Manga|Anime|Novel)Library$");
+final libLocationRegex = RegExp(r"^/(Manga|Anime)Library$");
 
-/// Nav destinations kept off the anime-only TV layout (the manga & novel
-/// libraries). True means "keep this destination".
+/// Nav destinations kept off the anime-only TV layout (the manga
+/// library). True means "keep this destination".
 bool _isNotHiddenLibOnTv(String nav) =>
-    nav != "/MangaLibrary" && nav != "/NovelLibrary";
+    nav != "/MangaLibrary";
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key, required this.child});
@@ -95,7 +95,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         .autoSyncFrequency;
     final hiddenItems = ref.read(hideItemsStateProvider);
 
-    // On the anime-only TV layout, never land on a hidden manga/novel library.
+    // On the anime-only TV layout, never land on a hidden manga library.
     final order = ref.read(animeOnlyTvModeProvider)
         ? _navigationOrder.where(_isNotHiddenLibOnTv).toList()
         : _navigationOrder;
@@ -250,7 +250,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                         .where((nav) => !hideItems.contains(nav))
                         .toList();
 
-              // Anime-only TV layout: drop the manga & novel library tabs.
+              // Anime-only TV layout: drop the manga library tab.
               if (ref.watch(animeOnlyTvModeProvider)) {
                 dest = dest.where(_isNotHiddenLibOnTv).toList();
               }
@@ -368,9 +368,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   static bool _isReadingScreen(String? location) {
-    return location == '/mangaReaderView' ||
-        location == '/animePlayerView' ||
-        location == '/novelReaderView';
+    return location == '/mangaReaderView' || location == '/animePlayerView';
   }
 
   List<NavigationRailDestination> _buildNavigationWidgetsDesktop(
@@ -976,7 +974,7 @@ class _ExtensionBadgeWidget extends ConsumerWidget {
       stream: sourceRepository.watchActiveExcludingHiddenItemTypes(
         hideManga: hideItems.contains("/MangaLibrary"),
         hideAnime: hideItems.contains("/AnimeLibrary"),
-        hideNovel: hideItems.contains("/NovelLibrary"),
+        hideNovel: true,
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -1014,7 +1012,7 @@ class _UpdatesBadgeWidget extends ConsumerWidget {
       stream: updateRepository.watchUnreadExcludingHiddenItemTypes(
         hideManga: hideItems.contains("/MangaLibrary"),
         hideAnime: hideItems.contains("/AnimeLibrary"),
-        hideNovel: hideItems.contains("/NovelLibrary"),
+        hideNovel: true,
       ),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {

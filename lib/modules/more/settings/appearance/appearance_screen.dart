@@ -24,7 +24,6 @@ import 'package:mangayomi/modules/widgets/tv_escapable_slider.dart';
 final navigationItems = {
   "/MangaLibrary": "Manga",
   "/AnimeLibrary": "Anime",
-  "/NovelLibrary": "Novel",
   "/updates": "Updates",
   "/history": "History",
   "/browse": "Browse",
