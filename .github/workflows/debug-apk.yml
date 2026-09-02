@@ -12,6 +12,22 @@ name: Debug APK
 # in-app updater: GitHub's "latest release" ignores prereleases, so this can
 # never be mistaken for a real version. It is debug signed and cannot be
 # installed over a release build.
+#
+# The build is profile mode, arm64 only. A --debug build of this app came out
+# at 215 MB, and a download that size off a phone browser fails more often
+# than it finishes; installing it then needs roughly twice that free, because
+# useLegacyPackaging extracts the native libraries. Two things carried the
+# weight, and neither is needed to try the app on a handset:
+#
+#   * every ABI at once - arm64-v8a, armeabi-v7a and x86_64 - 125 MB of
+#     native libraries for three architectures when a phone runs one, and
+#     every phone worth testing on since about 2018 is arm64;
+#   * debug mode itself, whose 60 MB kernel_blob.bin is the Dart source
+#     shipped for the JIT, plus a Vulkan validation layer and Rust compiled
+#     unoptimised.
+#
+# Profile mode is AOT compiled and drops all of that, while still being debug
+# signed, installable without secrets, and running at release speed.
 
 on:
   push:
@@ -63,22 +79,27 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build debug APK
+      - name: Build APK
         run: |
-          flutter build apk --debug
-          mv build/app/outputs/flutter-apk/app-debug.apk AvePlay-debug.apk
+          flutter build apk --profile --target-platform android-arm64
+          mv build/app/outputs/flutter-apk/app-profile.apk AvePlay-arm64.apk
+          ls -lh AvePlay-arm64.apk
 
       - name: Publish as a prerelease asset
         uses: ncipollo/release-action@v1
         with:
-          artifacts: AvePlay-debug.apk
+          artifacts: AvePlay-arm64.apk
           tag: debug-latest
           name: Latest debug build
           body: |
-            The newest debug build, replaced on every push.
+            The newest test build, replaced on every push.
 
-            Debug signed, so it will not install over a release build, and
-            it is a prerelease so the in-app updater ignores it.
+            For 64-bit ARM phones and tablets, which is every Android device
+            of the last several years. Not for an emulator: there is no
+            x86_64 slice in it.
+
+            Debug signed, so it will not install over a release build, and it
+            is a prerelease so the in-app updater ignores it.
 
             Commit: ${{ github.sha }}
           prerelease: true
