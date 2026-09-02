@@ -22,6 +22,7 @@ import 'package:mangayomi/modules/more/settings/appearance/providers/app_ui_scal
 import 'package:mangayomi/modules/widgets/tv_escapable_slider.dart';
 
 final navigationItems = {
+  "/home": "Home",
   "/AnimeLibrary": "Anime",
   "/updates": "Updates",
   "/history": "History",

@@ -123,6 +123,7 @@ class FullScreenReaderState extends _$FullScreenReaderState {
 @riverpod
 class NavigationOrderState extends _$NavigationOrderState {
   final items = [
+    '/home',
     '/AnimeLibrary',
     '/updates',
     '/history',
@@ -144,6 +145,12 @@ class NavigationOrderState extends _$NavigationOrderState {
     navigationOrder.removeWhere(
       (e) => e == '/NovelLibrary' || e == '/MangaLibrary',
     );
+    // Home leads the bar on a fresh install, so it has to lead it on an
+    // upgrade too. Appending it with the rest would bury the landing tab at
+    // the far end for everyone who already had a saved order.
+    if (!navigationOrder.contains('/home')) {
+      navigationOrder.insert(0, '/home');
+    }
     navigationOrder.addAll(
       items.where((e) => !navigationOrder.contains(e)).toList(),
     );

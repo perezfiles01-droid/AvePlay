@@ -46,6 +46,7 @@ import 'package:mangayomi/modules/browse/extension/extension_lang.dart';
 import 'package:mangayomi/modules/browse/global_search/global_search_screen.dart';
 import 'package:mangayomi/modules/main_view/main_screen.dart';
 import 'package:mangayomi/modules/history/history_screen.dart';
+import 'package:mangayomi/modules/home/home_screen.dart';
 import 'package:mangayomi/modules/library/library_screen.dart';
 import 'package:mangayomi/modules/manga/detail/manga_detail_main.dart';
 import 'package:mangayomi/modules/manga/home/manga_home_screen.dart';
@@ -144,6 +145,7 @@ class RouterNotifier extends ChangeNotifier {
               children: children,
             ),
       branches: [
+        _branch(_genericRoute(name: "home", child: const HomeScreen())),
         _branch(
           _genericRoute<String?>(
             name: "AnimeLibrary",

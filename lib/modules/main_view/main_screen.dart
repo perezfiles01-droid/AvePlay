@@ -322,6 +322,18 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       null,
     );
 
+    if (dest.contains("/home")) {
+      destinations[dest.indexOf("/home")] = NavigationRailDestination(
+        // Even breathing room between tabs on TV; null off-TV.
+        padding: isTv ? const EdgeInsets.symmetric(vertical: 6) : null,
+        selectedIcon: const Icon(Icons.home),
+        icon: const Icon(Icons.home_outlined),
+        label: const Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Text("Home"),
+        ),
+      );
+    }
     if (dest.contains("/AnimeLibrary")) {
       destinations[dest.indexOf("/AnimeLibrary")] = NavigationRailDestination(
         // Even breathing room between tabs on TV; null off-TV.
@@ -434,6 +446,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       const SizedBox.shrink(),
     );
 
+    if (dest.contains("/home")) {
+      destinations[dest.indexOf("/home")] = NavigationDestination(
+        selectedIcon: const Icon(Icons.home),
+        icon: const Icon(Icons.home_outlined),
+        label: "Home",
+      );
+    }
     if (dest.contains("/AnimeLibrary")) {
       destinations[dest.indexOf("/AnimeLibrary")] = NavigationDestination(
         selectedIcon: const Icon(Icons.video_collection),
@@ -780,6 +799,7 @@ class _TabletLayoutState extends State<_TabletLayout> {
     if (isLongPressed) return 0;
 
     const validLocations = {
+      '/home',
       '/AnimeLibrary',
       '/history',
       '/updates',
@@ -848,6 +868,7 @@ class _MobileBottomNavigation extends StatelessWidget {
     if (isLongPressed) return 0;
 
     const validLocations = {
+      '/home',
       '/AnimeLibrary',
       '/history',
       '/updates',
