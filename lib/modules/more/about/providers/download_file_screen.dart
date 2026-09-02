@@ -11,6 +11,7 @@ import 'package:flutter_qjs/quickjs/ffi.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:mangayomi/providers/l10n_providers.dart';
+import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,10 +31,75 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
   final List<int> _bytes = [];
   StreamSubscription<List<int>>? _subscription;
 
+  /// Set when the download could not start or could not finish, so the dialog
+  /// can say so and offer another go instead of sitting at 0 MB forever.
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    // Checking for an update is the only decision worth asking for, and it has
+    // already been made by the time this opens. So the download starts itself
+    // rather than waiting behind a second button.
+    //
+    // Android only: elsewhere "download" means handing the release page to a
+    // browser, and throwing someone out of the app without a tap is not the
+    // same favour.
+    if (Platform.isAndroid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _startAndroidDownload();
+      });
+    }
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();
     super.dispose();
+  }
+
+  /// The release asset matching this device.
+  ///
+  /// Prefers an APK built for one of the device's own ABIs, then falls back to
+  /// any APK in the release: a universal build still installs, and offering it
+  /// beats reporting that there is no download when there plainly is one.
+  Future<String?> _apkUrlForDevice() async {
+    final assets = widget.updateAvailable.$4.whereType<String>().toList();
+    var apks = assets.where((url) => url.endsWith('.apk')).toList();
+    if (apks.isEmpty) return null;
+
+    // A release carries both builds, and "android-tv-arm64-v8a" contains
+    // "arm64-v8a", so matching on the ABI alone would happily hand a phone the
+    // television build. Narrow to this device's flavour first, and only ignore
+    // the split if it leaves nothing to install.
+    final flavour = apks
+        .where((url) => url.contains('android-tv') == isTv)
+        .toList();
+    if (flavour.isNotEmpty) apks = flavour;
+
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+    for (final abi in androidInfo.supportedAbis) {
+      final match = apks.firstWhereOrNull((url) => url.contains(abi));
+      if (match != null) return match;
+    }
+    return apks.first;
+  }
+
+  /// Picks the asset and downloads it, reporting anything that goes wrong.
+  Future<void> _startAndroidDownload() async {
+    if (_total > 0 || _error != null) return;
+    try {
+      final url = await _apkUrlForDevice();
+      if (url == null) {
+        if (mounted) {
+          setState(() => _error = 'No APK in this release for this device.');
+        }
+        return;
+      }
+      await _downloadApk(url);
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    }
   }
 
   @override
@@ -71,6 +137,14 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
                     ],
                   )
                 : SizedBox.shrink(),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -86,30 +160,22 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
                   child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 15),
-                ElevatedButton(
-                  onPressed: _total == 0
-                      ? () async {
-                          if (Platform.isAndroid) {
-                            final deviceInfo = DeviceInfoPlugin();
-                            final androidInfo = await deviceInfo.androidInfo;
-                            String apkUrl = "";
-                            for (String abi in androidInfo.supportedAbis) {
-                              final url = updateAvailable.$4.firstWhereOrNull(
-                                (apk) => (apk as String).contains(abi),
-                              );
-                              if (url != null) {
-                                apkUrl = url;
-                                break;
-                              }
-                            }
-                            await _downloadApk(apkUrl);
-                          } else {
-                            _launchInBrowser(Uri.parse(updateAvailable.$3));
-                          }
-                        }
-                      : null,
-                  child: Text(l10n.download),
-                ),
+                // On Android the download is already running, so the only
+                // button worth showing is one to try again after a failure.
+                if (!Platform.isAndroid)
+                  ElevatedButton(
+                    onPressed: () =>
+                        _launchInBrowser(Uri.parse(updateAvailable.$3)),
+                    child: Text(l10n.download),
+                  )
+                else if (_error != null)
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() => _error = null);
+                      _startAndroidDownload();
+                    },
+                    child: Text(l10n.retry),
+                  ),
               ],
             ),
           ],
@@ -136,14 +202,27 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
       return;
     }
     _response = await http.Client().send(http.Request('GET', Uri.parse(url)));
+    if (_response!.statusCode != 200) {
+      throw HttpException('Download failed (${_response!.statusCode})');
+    }
     _total = _response?.contentLength ?? 0;
-    _subscription = _response?.stream.listen((value) {
-      setState(() {
-        _bytes.addAll(value);
-        _received += value.length;
-      });
-    });
+    _subscription = _response?.stream.listen(
+      (value) {
+        if (!mounted) return;
+        setState(() {
+          _bytes.addAll(value);
+          _received += value.length;
+        });
+      },
+      // Without this a dropped connection leaves the bar stopped part way
+      // with nothing said and no way on.
+      onError: (Object e) {
+        if (mounted) setState(() => _error = '$e');
+      },
+      cancelOnError: true,
+    );
     _subscription?.onDone(() async {
+      if (_error != null) return;
       await file.writeAsBytes(_bytes);
       await _installApk(file);
       if (mounted) {

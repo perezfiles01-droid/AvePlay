@@ -74,10 +74,10 @@ class AboutScreen extends ConsumerWidget {
                           try {
                             final updateInfo = await performManualUpdateCheck();
                             if (updateInfo != null) {
-                              BotToast.showText(
-                                text: l10n.new_update_available,
-                              );
-                              await Future.delayed(const Duration(seconds: 1));
+                              // Straight into the download dialog, which starts
+                              // downloading itself. The toast-then-wait was a
+                              // second beat before a second button; now there
+                              // is only the one tap.
                               if (context.mounted) {
                                 showDialog(
                                   context: context,
