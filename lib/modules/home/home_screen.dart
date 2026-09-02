@@ -126,11 +126,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final (season, year) = ref.watch(selectedSeasonProvider);
 
+    // The bar floats over the hero, whose backdrop is dark in both themes, so
+    // its icons are forced light while a hero is behind them. Left to the
+    // theme they would be near-black on a light theme and disappear into the
+    // artwork. With no hero there is nothing behind them and the theme's own
+    // colour is right.
+    final hasHero = localHero != null || remoteHero != null;
+
     return Scaffold(
       key: _scaffoldKey,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        foregroundColor: hasHero ? Colors.white : null,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
