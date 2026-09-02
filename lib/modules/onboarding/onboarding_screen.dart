@@ -29,8 +29,11 @@ import 'package:mangayomi/utils/platform_utils.dart';
 const _libraryRoutes = {
   ItemType.manga: '/MangaLibrary',
   ItemType.anime: '/AnimeLibrary',
-  ItemType.novel: '/NovelLibrary',
 };
+
+/// The libraries the reader can be offered. The novel library was removed, so
+/// it is not one of them even though ItemType still carries it.
+const _libraryTypes = [ItemType.manga, ItemType.anime];
 
 /// Shown once, on the first launch of a fresh install.
 ///
@@ -107,7 +110,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   /// and the reader narrows it.
   final Set<ItemType> _libraries = isTv
       ? {ItemType.anime}
-      : {...ItemType.values};
+      : {..._libraryTypes};
   bool _mergeLibraries = false;
   ItemType _repoType = ItemType.manga;
 
@@ -217,7 +220,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   /// The chosen libraries in the order the nav bar shows them, so the
   /// repository step offers them the same way round.
   List<ItemType> get _chosen =>
-      ItemType.values.where(_libraries.contains).toList();
+      _libraryTypes.where(_libraries.contains).toList();
 
   /// The steps that will actually be shown, in order.
   ///
@@ -353,7 +356,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
               .where((name) => name.isNotEmpty)
               .toList();
           _foundByType = {
-            for (final type in ItemType.values)
+            for (final type in _libraryTypes)
               if (mine.any((manga) => manga.itemType == type))
                 type: mine.where((manga) => manga.itemType == type).length,
           };
@@ -400,7 +403,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
 
   /// Whether any library has a repository, asked after a restore that may have
   /// brought some in.
-  bool get _hasAnyRepo => ItemType.values.any(
+  bool get _hasAnyRepo => _libraryTypes.any(
     (type) => ref.read(extensionsRepoStateProvider(type)).isNotEmpty,
   );
 
@@ -673,7 +676,7 @@ class _OnboardingScreenState extends ConsumerState<_OnboardingBody>
   List<Widget> _stepBody(AppLocalizations l10n) => switch (_step) {
     _Step.libraries => [
       _ChoiceRow<ItemType>(
-        values: ItemType.values,
+        values: _libraryTypes,
         label: (type) => _libraryLabel(l10n, type),
         isSelected: _libraries.contains,
         onTap: (type) => setState(() {

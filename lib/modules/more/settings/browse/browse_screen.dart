@@ -28,7 +28,7 @@ class BrowseSScreen extends ConsumerWidget {
       checkForExtensionsUpdateStateProvider,
     );
     final autoUpdateExtensions = ref.watch(autoUpdateExtensionsStateProvider);
-    // On the anime-only TV layout, hide the manga & novel repo settings.
+    // On the anime-only TV layout, hide the manga repo settings.
     final animeOnly = ref.watch(animeOnlyTvModeProvider);
     final l10n = l10nLocalizations(context);
     return Scaffold(
@@ -38,12 +38,12 @@ class BrowseSScreen extends ConsumerWidget {
         child: Column(
           children: [
             // The master "anime only" TV switch: turning it off removes all the
-            // TV-only gates (shows manga & novel again across the app).
+            // TV-only gates (shows manga again across the app).
             if (isTv)
               SwitchListTile(
                 title: const Text('Anime only (beta)'),
                 subtitle: const Text(
-                  'Hide manga & novel across the app. Turn off to show everything.',
+                  'Hide manga across the app. Turn off to show everything.',
                 ),
                 value: animeOnly,
                 onChanged: (v) =>
@@ -119,23 +119,6 @@ class BrowseSScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  if (!animeOnly)
-                    ListTile(
-                      onTap: () {
-                        context.push(
-                          "/SourceRepositories",
-                          extra: ItemType.novel,
-                        );
-                      },
-                      title: Text(l10n.novel_extensions_repo),
-                      subtitle: Text(
-                        l10n.manage_novel_repo_urls,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: context.secondaryColor,
-                        ),
-                      ),
-                    ),
                   SwitchListTile(
                     value: checkForExtensionUpdates,
                     title: Text(l10n.check_for_extension_updates),

@@ -125,7 +125,6 @@ class NavigationOrderState extends _$NavigationOrderState {
   final items = [
     '/MangaLibrary',
     '/AnimeLibrary',
-    '/NovelLibrary',
     '/updates',
     '/history',
     '/browse',
@@ -141,6 +140,8 @@ class NavigationOrderState extends _$NavigationOrderState {
   }
 
   List<String> _checkMissingItems(List<String> navigationOrder) {
+    // Drop the retired novel library from orders saved by older versions.
+    navigationOrder.removeWhere((e) => e == '/NovelLibrary');
     navigationOrder.addAll(
       items.where((e) => !navigationOrder.contains(e)).toList(),
     );
@@ -155,14 +156,23 @@ class NavigationOrderState extends _$NavigationOrderState {
 
 @riverpod
 class HideItemsState extends _$HideItemsState {
+  /// The novel library was removed, so it stays hidden regardless of what a
+  /// previously saved setting says.
+  static List<String> _withNovelHidden(List<String> values) => [
+    ...values.where((e) => e != '/NovelLibrary'),
+    '/NovelLibrary',
+  ];
+
   @override
   List<String> build() {
-    return settingsRepository.current.hideItems ?? ['/trackerLibrary'];
+    return _withNovelHidden(
+      settingsRepository.current.hideItems ?? ['/trackerLibrary'],
+    );
   }
 
   void set(List<String> values) {
-    state = values;
-    settingsRepository.update((s) => s.hideItems = values);
+    state = _withNovelHidden(values);
+    settingsRepository.update((s) => s.hideItems = state);
   }
 }
 

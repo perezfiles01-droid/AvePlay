@@ -46,7 +46,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen>
   late TabController _tabBarController;
   late List<BrowseTab> _tabList;
 
-  // Hide manga & novel from Browse (sources + extensions) on the anime-only TV
+  // Hide manga from Browse (sources + extensions) on the anime-only TV
   // layout so only anime shows. Recomputed live so toggling "Anime only" updates
   // the tabs without a restart. Defaults to isTv, user-overridable. See #729.
   List<BrowseTab> _computeTabList(bool animeOnly) => [
@@ -54,14 +54,10 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen>
       BrowseTab(ItemType.manga, BrowseTabKind.sources),
     if (!hideItems.contains("/AnimeLibrary"))
       BrowseTab(ItemType.anime, BrowseTabKind.sources),
-    if (!animeOnly && !hideItems.contains("/NovelLibrary"))
-      BrowseTab(ItemType.novel, BrowseTabKind.sources),
     if (!animeOnly && !hideItems.contains("/MangaLibrary"))
       BrowseTab(ItemType.manga, BrowseTabKind.extensions),
     if (!hideItems.contains("/AnimeLibrary"))
       BrowseTab(ItemType.anime, BrowseTabKind.extensions),
-    if (!animeOnly && !hideItems.contains("/NovelLibrary"))
-      BrowseTab(ItemType.novel, BrowseTabKind.extensions),
   ];
 
   @override

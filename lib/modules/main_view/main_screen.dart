@@ -153,7 +153,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     // paint and the initial library queries.
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        for (var type in ItemType.values) {
+        // Novel was removed from the app, so its repo is never fetched.
+        for (var type in const [ItemType.manga, ItemType.anime]) {
           ref.read(
             fetchItemSourcesListProvider(
               id: null,
@@ -260,7 +261,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                       if ([
                         "/MangaLibrary",
                         "/AnimeLibrary",
-                        "/NovelLibrary",
                       ].contains(nav)) {
                         if (uniqueSwitch) return null;
                         uniqueSwitch = true;
@@ -413,18 +413,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         ),
       );
     }
-    if (dest.contains("/NovelLibrary")) {
-      destinations[dest.indexOf("/NovelLibrary")] = NavigationRailDestination(
-        // Even breathing room between tabs on TV; null off-TV.
-        padding: isTv ? const EdgeInsets.symmetric(vertical: 6) : null,
-        selectedIcon: const Icon(Icons.local_library),
-        icon: const Icon(Icons.local_library_outlined),
-        label: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Text(l10n.novel),
-        ),
-      );
-    }
     if (dest.contains("/updates")) {
       destinations[dest.indexOf("/updates")] = NavigationRailDestination(
         // Even breathing room between tabs on TV; null off-TV.
@@ -551,13 +539,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         selectedIcon: const Icon(Icons.video_collection),
         icon: const Icon(Icons.video_collection_outlined),
         label: l10n.anime,
-      );
-    }
-    if (dest.contains("/NovelLibrary")) {
-      destinations[dest.indexOf("/NovelLibrary")] = NavigationDestination(
-        selectedIcon: const Icon(Icons.local_library),
-        icon: const Icon(Icons.local_library_outlined),
-        label: l10n.novel,
       );
     }
     if (dest.contains("/updates")) {
@@ -901,7 +882,6 @@ class _TabletLayoutState extends State<_TabletLayout> {
     const validLocations = {
       '/MangaLibrary',
       '/AnimeLibrary',
-      '/NovelLibrary',
       '/history',
       '/updates',
       '/browse',
@@ -971,7 +951,6 @@ class _MobileBottomNavigation extends StatelessWidget {
     const validLocations = {
       '/MangaLibrary',
       '/AnimeLibrary',
-      '/NovelLibrary',
       '/history',
       '/updates',
       '/browse',
