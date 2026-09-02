@@ -146,13 +146,6 @@ class RouterNotifier extends ChangeNotifier {
       branches: [
         _branch(
           _genericRoute<String?>(
-            name: "MangaLibrary",
-            builder: (id) =>
-                LibraryScreen(itemType: ItemType.manga, presetInput: id),
-          ),
-        ),
-        _branch(
-          _genericRoute<String?>(
             name: "AnimeLibrary",
             builder: (id) =>
                 LibraryScreen(itemType: ItemType.anime, presetInput: id),

@@ -1543,11 +1543,8 @@ class _MangaDetailViewState extends ConsumerState<MangaDetailView>
                                         if (value == 0) {
                                           final genre = widget.manga!.genre![i];
                                           switch (widget.manga!.itemType) {
+                                            // The manga library was removed.
                                             case ItemType.manga:
-                                              context.pushReplacement(
-                                                '/MangaLibrary',
-                                                extra: genre,
-                                              );
                                               break;
                                             case ItemType.anime:
                                               context.pushReplacement(

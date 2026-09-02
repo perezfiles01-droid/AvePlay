@@ -9,7 +9,6 @@ import 'package:mangayomi/repositories/manga_repository.dart';
 import 'package:mangayomi/repositories/source_repository.dart';
 import 'package:mangayomi/models/manga.dart';
 import 'package:mangayomi/modules/more/settings/player/custom_button_screen.dart';
-import 'package:mangayomi/modules/main_view/providers/tv_mode_provider.dart';
 import 'package:mangayomi/modules/more/settings/browse/providers/browse_state_provider.dart';
 import 'package:mangayomi/modules/widgets/extension_server_warning_banner.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
@@ -28,8 +27,6 @@ class BrowseSScreen extends ConsumerWidget {
       checkForExtensionsUpdateStateProvider,
     );
     final autoUpdateExtensions = ref.watch(autoUpdateExtensionsStateProvider);
-    // On the anime-only TV layout, hide the manga repo settings.
-    final animeOnly = ref.watch(animeOnlyTvModeProvider);
     final l10n = l10nLocalizations(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n!.browse)),
@@ -37,18 +34,6 @@ class BrowseSScreen extends ConsumerWidget {
         padding: tvPageInsets,
         child: Column(
           children: [
-            // The master "anime only" TV switch: turning it off removes all the
-            // TV-only gates (shows manga again across the app).
-            if (isTv)
-              SwitchListTile(
-                title: const Text('Anime only (beta)'),
-                subtitle: const Text(
-                  'Hide manga across the app. Turn off to show everything.',
-                ),
-                value: animeOnly,
-                onChanged: (v) =>
-                    ref.read(animeOnlyTvModeProvider.notifier).set(v),
-              ),
             Padding(
               padding: const EdgeInsets.only(bottom: 30, top: 20),
               child: Column(
@@ -80,23 +65,6 @@ class BrowseSScreen extends ConsumerWidget {
                         isMobile
                             ? l10n.m_extension_server_description
                             : l10n.android_proxy_server_mihon_description,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: context.secondaryColor,
-                        ),
-                      ),
-                    ),
-                  if (!animeOnly)
-                    ListTile(
-                      onTap: () {
-                        context.push(
-                          "/SourceRepositories",
-                          extra: ItemType.manga,
-                        );
-                      },
-                      title: Text(l10n.manga_extensions_repo),
-                      subtitle: Text(
-                        l10n.manage_manga_repo_urls,
                         style: TextStyle(
                           fontSize: 11,
                           color: context.secondaryColor,

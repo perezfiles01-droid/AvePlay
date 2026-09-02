@@ -123,7 +123,6 @@ class FullScreenReaderState extends _$FullScreenReaderState {
 @riverpod
 class NavigationOrderState extends _$NavigationOrderState {
   final items = [
-    '/MangaLibrary',
     '/AnimeLibrary',
     '/updates',
     '/history',
@@ -140,8 +139,11 @@ class NavigationOrderState extends _$NavigationOrderState {
   }
 
   List<String> _checkMissingItems(List<String> navigationOrder) {
-    // Drop the retired novel library from orders saved by older versions.
-    navigationOrder.removeWhere((e) => e == '/NovelLibrary');
+    // Drop the retired manga and novel libraries from orders saved by older
+    // versions.
+    navigationOrder.removeWhere(
+      (e) => e == '/NovelLibrary' || e == '/MangaLibrary',
+    );
     navigationOrder.addAll(
       items.where((e) => !navigationOrder.contains(e)).toList(),
     );
@@ -156,37 +158,37 @@ class NavigationOrderState extends _$NavigationOrderState {
 
 @riverpod
 class HideItemsState extends _$HideItemsState {
-  /// The novel library was removed, so it stays hidden regardless of what a
-  /// previously saved setting says.
-  static List<String> _withNovelHidden(List<String> values) => [
-    ...values.where((e) => e != '/NovelLibrary'),
-    '/NovelLibrary',
+  /// The app is anime-only: the manga and novel libraries were removed, so
+  /// they stay hidden regardless of what a previously saved setting says.
+  static const _removed = ['/MangaLibrary', '/NovelLibrary'];
+
+  static List<String> _withRemovedHidden(List<String> values) => [
+    ...values.where((e) => !_removed.contains(e)),
+    ..._removed,
   ];
 
   @override
   List<String> build() {
-    return _withNovelHidden(
+    return _withRemovedHidden(
       settingsRepository.current.hideItems ?? ['/trackerLibrary'],
     );
   }
 
   void set(List<String> values) {
-    state = _withNovelHidden(values);
+    state = _withRemovedHidden(values);
     settingsRepository.update((s) => s.hideItems = state);
   }
 }
 
 @riverpod
 class MergeLibraryNavMobileState extends _$MergeLibraryNavMobileState {
+  /// Always off: the switcher exists to fold several libraries into one nav
+  /// entry, and anime is the only library left. Honouring a saved `true` here
+  /// would replace that sole entry with a switcher onto itself.
   @override
-  bool build() {
-    return settingsRepository.current.mergeLibraryNavMobile ?? false;
-  }
+  bool build() => false;
 
-  void set(bool value) {
-    state = value;
-    settingsRepository.update((s) => s.mergeLibraryNavMobile = value);
-  }
+  void set(bool value) {}
 }
 
 @riverpod
