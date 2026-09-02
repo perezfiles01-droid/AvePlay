@@ -6,7 +6,6 @@ import 'package:mangayomi/modules/more/widgets/downloaded_only_widget.dart';
 import 'package:mangayomi/modules/more/widgets/incognito_mode_widget.dart';
 import 'package:mangayomi/modules/more/widgets/list_tile_widget.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
-import 'package:mangayomi/utils/constant.dart';
 import 'package:mangayomi/utils/platform_utils.dart';
 import 'package:mangayomi/models/manga.dart';
 
@@ -30,13 +29,25 @@ class MoreScreenState extends ConsumerState<MoreScreen> {
             SizedBox(height: AppBar().preferredSize.height),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Image.asset(
-                appIconAssets[2],
-                color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.black
-                    : Colors.white,
-                fit: BoxFit.cover,
+              // The wordmark that replaced the logo image. Same slot, same
+              // height, and the same theme-driven black-on-light /
+              // white-on-dark tint the image was given.
+              child: SizedBox(
                 height: 100,
+                child: Center(
+                  child: Text(
+                    'JSP',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.black
+                          : Colors.white,
+                      fontSize: 64,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 4,
+                      height: 1,
+                    ),
+                  ),
+                ),
               ),
             ),
             const Divider(),
