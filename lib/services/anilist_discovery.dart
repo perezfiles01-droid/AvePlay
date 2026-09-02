@@ -173,6 +173,143 @@ $_searchFields
       const [];
 }
 
+/// Field set for the home feed rows.
+///
+/// Deliberately without `description`: it is the expensive field on this API,
+/// the rows only draw a cover and a title, and asking for it on a multi-row
+/// page is what makes AniList answer 500.
+const String _feedFields = '''
+    id
+    idMal
+    title { romaji english native }
+    coverImage { large color }
+    bannerImage
+    type
+    format
+    status
+    episodes
+    averageScore
+    genres
+    season
+    seasonYear''';
+
+/// The AniList season covering [month] (1-12), as its MediaSeason enum name.
+String seasonOfMonth(int month) => switch (month) {
+  1 || 2 || 3 => 'WINTER',
+  4 || 5 || 6 => 'SPRING',
+  7 || 8 || 9 => 'SUMMER',
+  _ => 'FALL',
+};
+
+/// The season and year AniList would call "now".
+(String, int) currentSeason([DateTime? now]) {
+  final d = now ?? DateTime.now();
+  return (seasonOfMonth(d.month), d.year);
+}
+
+/// What is trending on AniList right now.
+Future<List<DiscoveryMedia>> fetchTrendingAnime({int perPage = 25}) async {
+  final query =
+      '''
+    query(\$perPage: Int) {
+      Page(page: 1, perPage: \$perPage) {
+        media(type: ANIME, sort: [TRENDING_DESC], isAdult: false) {
+$_feedFields
+        }
+      }
+    }''';
+  final data = await _executeGraphQL(query, {"perPage": perPage});
+  return _mediaListOf(data?["Page"]?["media"]);
+}
+
+/// The most popular anime of one season.
+///
+/// [season] is an AniList MediaSeason name (WINTER/SPRING/SUMMER/FALL).
+Future<List<DiscoveryMedia>> fetchSeasonAnime({
+  required String season,
+  required int year,
+  int perPage = 25,
+}) async {
+  final query =
+      '''
+    query(\$season: MediaSeason, \$year: Int, \$perPage: Int) {
+      Page(page: 1, perPage: \$perPage) {
+        media(
+          type: ANIME
+          season: \$season
+          seasonYear: \$year
+          sort: [POPULARITY_DESC]
+          isAdult: false
+        ) {
+$_feedFields
+        }
+      }
+    }''';
+  final data = await _executeGraphQL(query, {
+    "season": season,
+    "year": year,
+    "perPage": perPage,
+  });
+  return _mediaListOf(data?["Page"]?["media"]);
+}
+
+/// Anime that had an episode air in the last [days] days, newest first.
+///
+/// This is the airing schedule read backwards, so it answers "what just got a
+/// new episode" rather than "what starts soon". A series airs once per episode
+/// and can appear more than once in the window, so rows are de-duplicated by
+/// media id, keeping the most recent airing of each.
+Future<List<DiscoveryMedia>> fetchRecentlyAiredAnime({
+  int days = 7,
+  int perPage = 50,
+}) async {
+  final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final fromSec = nowSec - days * 24 * 60 * 60;
+  final query =
+      '''
+    query(\$from: Int, \$to: Int, \$perPage: Int) {
+      Page(page: 1, perPage: \$perPage) {
+        airingSchedules(
+          airingAt_greater: \$from
+          airingAt_lesser: \$to
+          sort: [TIME_DESC]
+        ) {
+          media {
+            isAdult
+$_feedFields
+          }
+        }
+      }
+    }''';
+  final data = await _executeGraphQL(query, {
+    "from": fromSec,
+    "to": nowSec,
+    "perPage": perPage,
+  });
+  final rows = data?["Page"]?["airingSchedules"] as List?;
+  if (rows == null) return const [];
+
+  final seen = <int>{};
+  final out = <DiscoveryMedia>[];
+  for (final row in rows) {
+    final media = (row as Map<String, dynamic>?)?["media"];
+    if (media is! Map<String, dynamic>) continue;
+    // airingSchedules cannot filter isAdult the way media() can, so it is
+    // asked for per row and dropped here instead.
+    if (media["isAdult"] == true) continue;
+    final entry = DiscoveryMedia.fromJson(media);
+    if (seen.add(entry.id)) out.add(entry);
+  }
+  return out;
+}
+
+List<DiscoveryMedia> _mediaListOf(Object? list) =>
+    (list as List?)
+        ?.whereType<Map<String, dynamic>>()
+        .map(DiscoveryMedia.fromJson)
+        .toList() ??
+    const [];
+
 /// Best-effort resolve a title to a media id, and say who it belongs to.
 ///
 /// The recommendation and watch-order screens only know a name. When AniList
