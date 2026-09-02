@@ -1,0 +1,87 @@
+name: Debug APK
+
+# Publishes the Android debug build as a release asset, so it can be
+# downloaded as an .apk and installed straight from the phone.
+#
+# Actions artifacts are always served as a zip, which a phone cannot install
+# without unzipping first. A release asset is served as the file itself, so
+# the link goes to the APK.
+#
+# The release is a prerelease on a fixed tag that is overwritten each time,
+# which keeps the download link stable and keeps it out of the way of the
+# in-app updater: GitHub's "latest release" ignores prereleases, so this can
+# never be mistaken for a real version. It is debug signed and cannot be
+# installed over a release build.
+
+on:
+  push:
+    branches:
+      - main
+      - "claude/**"
+  workflow_dispatch:
+
+concurrency:
+  group: debug-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    name: Build and publish debug APK
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Java toolchain
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.18.1"
+
+      - name: Setup ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Install flutter_rust_bridge_codegen
+        run: cargo install 'flutter_rust_bridge_codegen'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: |
+          flutter build apk --debug
+          mv build/app/outputs/flutter-apk/app-debug.apk AvePlay-debug.apk
+
+      - name: Publish as a prerelease asset
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: AvePlay-debug.apk
+          tag: debug-latest
+          name: Latest debug build
+          body: |
+            The newest debug build, replaced on every push.
+
+            Debug signed, so it will not install over a release build, and
+            it is a prerelease so the in-app updater ignores it.
+
+            Commit: ${{ github.sha }}
+          prerelease: true
+          allowUpdates: true
+          removeArtifacts: true
+          commit: ${{ github.sha }}
