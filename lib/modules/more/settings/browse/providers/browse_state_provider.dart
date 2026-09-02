@@ -81,6 +81,21 @@ class ShowNSFWState extends _$ShowNSFWState {
   }
 }
 
+/// The anime repository a fresh install starts with, so there is somewhere to
+/// install extensions from without anyone pasting a URL first.
+///
+/// Only used when nothing has ever been stored. Once the list has been saved,
+/// an empty list is an empty list: removing this leaves it removed rather than
+/// having it come back on the next launch.
+List<Repo> _defaultAnimeRepos() => [
+  Repo(
+    name: "Jim's extension",
+    jsonUrl:
+        'https://raw.githubusercontent.com/perezfiles01-droid/animiru/main/anime_index.json',
+    website: 'https://github.com/perezfiles01-droid/animiru',
+  ),
+];
+
 @riverpod
 class ExtensionsRepoState extends _$ExtensionsRepoState {
   @override
@@ -88,7 +103,8 @@ class ExtensionsRepoState extends _$ExtensionsRepoState {
     final settings = settingsRepository.current;
     return switch (itemType) {
           ItemType.manga => settings.mangaExtensionsRepo,
-          ItemType.anime => settings.animeExtensionsRepo,
+          ItemType.anime =>
+            settings.animeExtensionsRepo ?? _defaultAnimeRepos(),
           _ => settings.novelExtensionsRepo,
         } ??
         [];
