@@ -167,7 +167,7 @@ class AboutScreen extends ConsumerWidget {
                             onPressed: () {
                               _launchInBrowser(
                                 Uri.parse(
-                                  'https://github.com/kodjodevf/mangayomi',
+                                  'https://github.com/perezfiles01-droid/AvePlay',
                                 ),
                               );
                             },

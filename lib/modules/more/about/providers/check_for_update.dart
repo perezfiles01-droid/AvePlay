@@ -106,7 +106,7 @@ Future<UpdateInfo> _fetchLatestRelease() async {
   final http = MClient.init(reqcopyWith: {'useDartHttpClient': true});
   final res = await http.get(
     Uri.parse(
-      'https://api.github.com/repos/kodjodevf/Mangayomi/releases/latest',
+      'https://api.github.com/repos/perezfiles01-droid/AvePlay/releases/latest',
     ),
   );
   final release = jsonDecode(res.body) as Map<String, dynamic>;
