@@ -160,22 +160,26 @@ class _DownloadFileScreenState extends ConsumerState<DownloadFileScreen> {
                   child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 15),
-                // On Android the download is already running, so the only
-                // button worth showing is one to try again after a failure.
-                if (!Platform.isAndroid)
-                  ElevatedButton(
-                    onPressed: () =>
-                        _launchInBrowser(Uri.parse(updateAvailable.$3)),
-                    child: Text(l10n.download),
-                  )
-                else if (_error != null)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() => _error = null);
-                      _startAndroidDownload();
-                    },
-                    child: Text(l10n.retry),
+                // The button stays where it has always been. On Android the
+                // download is already running by the time this is on screen,
+                // so it sits disabled and the progress bar above it does the
+                // talking; it comes back to life only if the download failed
+                // and there is something to try again.
+                ElevatedButton(
+                  onPressed: !Platform.isAndroid
+                      ? () => _launchInBrowser(Uri.parse(updateAvailable.$3))
+                      : _error == null
+                      ? null
+                      : () {
+                          setState(() => _error = null);
+                          _startAndroidDownload();
+                        },
+                  child: Text(
+                    Platform.isAndroid && _error != null
+                        ? l10n.retry
+                        : l10n.download,
                   ),
+                ),
               ],
             ),
           ],
