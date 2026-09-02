@@ -64,6 +64,30 @@ android {
         }
     }
 
+    // Honour --target-platform for the prebuilt native libraries too.
+    //
+    // Flutter's own engine and app libraries follow that flag, but the ones
+    // that arrive as prebuilt archives - libgojni from the torrent server
+    // .aar, libmpv from media_kit - are packaged for every architecture they
+    // ship, whatever was asked for. In a single-ABI build that left 37 MB of
+    // x86_64 and armeabi-v7a slices in an APK meant for one arm64 phone.
+    //
+    // Reading the flag rather than hardcoding an ABI keeps the multi-platform
+    // release build untouched: it passes several targets, matches nothing
+    // here, and no filter is applied.
+    def singleAbi = [
+        "android-arm64": "arm64-v8a",
+        "android-arm"  : "armeabi-v7a",
+        "android-x64"  : "x86_64",
+    ][project.findProperty("target-platform")]
+    if (singleAbi != null) {
+        defaultConfig {
+            ndk {
+                abiFilters singleAbi
+            }
+        }
+    }
+
     signingConfigs {
        release {
            keyAlias keystoreProperties['keyAlias']
