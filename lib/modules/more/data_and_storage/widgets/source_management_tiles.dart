@@ -8,7 +8,6 @@ import 'package:mangayomi/modules/more/data_and_storage/providers/delete_source.
 import 'package:mangayomi/modules/more/data_and_storage/providers/pre_import_backup.dart';
 import 'package:mangayomi/modules/more/widgets/dialog_actions.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
-import 'package:mangayomi/repositories/chapter_repository.dart';
 import 'package:mangayomi/router/router.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 
@@ -59,24 +58,6 @@ class MissingSourceCheckTile extends ConsumerWidget {
         style: TextStyle(fontSize: 11, color: context.secondaryColor),
       ),
       onTap: () => _checkMissingSources(context),
-    );
-  }
-}
-
-class MergeDuplicateMangaTile extends ConsumerWidget {
-  const MergeDuplicateMangaTile({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    return ListTile(
-      leading: const Icon(Icons.join_full_rounded),
-      title: Text(l10n.merge_manga_title),
-      subtitle: Text(
-        l10n.merge_manga_subtitle,
-        style: TextStyle(fontSize: 11, color: context.secondaryColor),
-      ),
-      onTap: () => _mergeDuplicateManga(context, ref),
     );
   }
 }
@@ -316,164 +297,5 @@ Future<void> _deleteSource(BuildContext context, WidgetRef ref) async {
     );
   } catch (e) {
     botToast("Error deleting source: $e");
-  }
-}
-
-class _TaggedMangaCluster {
-  _TaggedMangaCluster(this.group, this.cluster);
-
-  final LibrarySourceGroup group;
-  final DuplicateMangaCluster cluster;
-}
-
-Future<void> _mergeDuplicateManga(BuildContext context, WidgetRef ref) async {
-  final l10n = context.l10n;
-  final taggedClusters = <_TaggedMangaCluster>[];
-  for (final group in librarySourceGroups(favoritesOnly: true)) {
-    final mangaList = mangaForGroup(group, favoritesOnly: true);
-    for (final cluster in findDuplicateMangaClusters(mangaList)) {
-      taggedClusters.add(_TaggedMangaCluster(group, cluster));
-    }
-  }
-  if (taggedClusters.isEmpty) {
-    botToast(l10n.merge_manga_none_found);
-    return;
-  }
-
-  final picked = await showDialog<_TaggedMangaCluster>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: Text(l10n.merge_manga_pick_title),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: taggedClusters.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final t = taggedClusters[index];
-              return ListTile(
-                title: Text(t.cluster.mangaList.first.name ?? ''),
-                subtitle: Text(
-                  "${_itemTypeLabel(context, t.group.itemType)} • ${t.group.sourceName} • "
-                  "${t.cluster.mangaList.length}",
-                ),
-                onTap: () => Navigator.pop(dialogContext, t),
-              );
-            },
-          ),
-        ),
-        actions: dialogCancelOnlyAction(dialogContext),
-      );
-    },
-  );
-  if (picked == null || !context.mounted) return;
-
-  final mangaList = [...picked.cluster.mangaList];
-  final chapterCounts = <int, int>{
-    for (final m in mangaList)
-      m.id!: chapterRepository.countByMangaId(m.id),
-  };
-  mangaList.sort(
-    (a, b) => (chapterCounts[b.id!] ?? 0).compareTo(chapterCounts[a.id!] ?? 0),
-  );
-
-  final primary = await showDialog<Manga>(
-    context: context,
-    builder: (dialogContext) {
-      var selected = mangaList.first;
-      return StatefulBuilder(
-        builder: (dialogContext, setState) {
-          return AlertDialog(
-            title: Text(l10n.merge_manga_choose_primary_title),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.merge_manga_choose_primary_message,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.secondaryColor,
-                    ),
-                  ),
-                  ...mangaList.map(
-                    (m) => RadioListTile<Manga>(
-                      value: m,
-                      // ignore: deprecated_member_use
-                      groupValue: selected,
-                      // ignore: deprecated_member_use
-                      onChanged: (v) => setState(() => selected = v!),
-                      title: Text(m.name ?? ''),
-                      subtitle: Text(
-                        l10n.merge_manga_chapters_subtitle(
-                          chapterCounts[m.id!] ?? 0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: dialogCancelConfirmActions(
-              dialogContext: dialogContext,
-              confirmLabel: l10n.merge_manga_button,
-              onCancel: () => Navigator.pop(dialogContext, null),
-              onConfirm: () => Navigator.pop(dialogContext, selected),
-            ),
-          );
-        },
-      );
-    },
-  );
-  if (primary == null || !context.mounted) return;
-
-  final others = mangaList.where((m) => m.id != primary.id).toList();
-  final preview = previewMergeManga(primary, others);
-
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: Text(l10n.merge_preview_title),
-        content: Text(
-          l10n.merge_manga_preview_message(
-            preview.totalChapters,
-            preview.duplicateChapters,
-            preview.keptChapters,
-            preview.duplicateTracks,
-          ),
-        ),
-        actions: dialogCancelConfirmActions(
-          dialogContext: dialogContext,
-          confirmLabel: l10n.merge_manga_button,
-        ),
-      );
-    },
-  );
-  if (confirmed != true || !context.mounted) return;
-
-  try {
-    final safetyBackupPath = await createLibrarySafetyBackup();
-    await writeLastLibrarySnapshot(
-      LibrarySafetySnapshot(
-        backupPath: safetyBackupPath,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        description: l10n.merge_manga_result_message(
-          others.length,
-          primary.name ?? '',
-        ),
-      ),
-    );
-    await mergeMangaGroup(primary, others);
-    if (!context.mounted) return;
-    ref.invalidate(lastLibrarySnapshotProvider);
-    botToast(
-      l10n.merge_manga_result_message(others.length, primary.name ?? ''),
-    );
-  } catch (e) {
-    botToast("Error merging manga: $e");
   }
 }

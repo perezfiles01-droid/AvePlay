@@ -66,12 +66,16 @@ abstract class BaseLibraryTabScreenState<T extends ConsumerStatefulWidget>
       : null;
 
   /// The tab switcher below the title: TV-home style pills on Android TV, the
-  /// classic underline [TabBar] elsewhere. On TV a single visible tab (e.g.
-  /// anime-only mode) needs no switcher at all.
+  /// classic underline [TabBar] elsewhere.
+  ///
+  /// A switcher with one tab switches between nothing. Anime is the only item
+  /// type left, so that is now the normal case rather than a TV-only one, and
+  /// the row is dropped on every platform instead of sitting under the title
+  /// as a permanent "Anime" label.
   PreferredSizeWidget? _buildTabSwitcher(BuildContext context) {
+    if (visibleTabTypes.length < 2) return null;
     final l10n = l10nLocalizations(context)!;
     if (isTv) {
-      if (visibleTabTypes.length < 2) return null;
       return PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: AnimatedBuilder(

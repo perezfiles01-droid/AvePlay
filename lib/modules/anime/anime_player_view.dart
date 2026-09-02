@@ -2131,29 +2131,6 @@ mp.register_script_message('call_button_${button.id}_long', button${button.id}lo
                 )
                 .toList(),
       ),
-      ValueListenableBuilder(
-        valueListenable: _customButtons,
-        builder: (context, value, child) => value != null
-            ? PopupMenuButton<String>(
-                tooltip: context.l10n.custom_buttons,
-                icon: const Icon(Icons.terminal, color: Colors.white),
-                itemBuilder: (context) => value
-                    .map(
-                      (btn) => PopupMenuItem<String>(
-                        value: btn.title!,
-                        child: Text(btn.title!),
-                        onTap: () {
-                          (_player.platform as NativePlayer).command([
-                            "script-message",
-                            "call_button_${btn.id}",
-                          ]);
-                        },
-                      ),
-                    )
-                    .toList(),
-              )
-            : Container(),
-      ),
     ];
   }
 
