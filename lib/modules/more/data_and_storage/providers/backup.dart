@@ -38,7 +38,7 @@ Future<void> doBackUp(
   final compression = ref.read(backupCompressionLevelProvider);
   final compressionLevel = compression.clamp(0, 9).toInt();
   try {
-    final zipPath = await writeAvePlayBackupZip(
+    final zipPath = await writeMangayomiBackupZip(
       list: list,
       directory: path,
       compressionLevel: compressionLevel,
@@ -108,7 +108,7 @@ Future<void> doBackUp(
   }
 }
 
-Future<String> writeAvePlayBackupZip({
+Future<String> writeMangayomiBackupZip({
   required List<int> list,
   required String directory,
   int compressionLevel = 6,

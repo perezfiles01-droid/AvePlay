@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
-import 'package:mangayomi/models/manga.dart';
 import 'package:mangayomi/modules/home/providers/home_feed_providers.dart';
 import 'package:mangayomi/services/anilist_discovery.dart';
 import 'package:mangayomi/services/discovery/service_availability.dart';

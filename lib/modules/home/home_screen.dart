@@ -79,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// One row, asked again from scratch.
-  void _retry(ProviderOrFamily provider) {
+  void _retry(FutureProvider<List<DiscoveryMedia>> provider) {
     _askAgain();
     ref.invalidate(provider);
   }
