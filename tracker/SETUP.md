@@ -16,49 +16,10 @@ so this exposes site names and structure, not documents.
 
 ---
 
-## Step 1 — Create the repository
+## Steps 1 & 2 — Repository and files: DONE
 
-Go to <https://github.com/new>
-
-| Field | Value |
-| --- | --- |
-| Repository name | `Tracker` |
-| Description | `Project links, documents and trackers` |
-| Visibility | **Public** |
-| Add a README | **leave unticked** |
-| .gitignore / licence | **None** |
-
-Click **Create repository**. You land on a page headed *"Quick setup"*.
-
-## Step 2 — Upload the files
-
-On that page click **uploading an existing file**
-(or go to `https://github.com/perezfiles01-droid/Tracker/upload/main`).
-
-Unzip the `Tracker-site.zip` I sent, open the folder, select **everything inside
-it** (Ctrl+A) and drag it onto the upload box. Folders keep their structure.
-
-You must end up with this at the top level of the repository:
-
-```
-index.html
-config.js
-robots.txt
-README.md
-SETUP.md
-Tracker-standalone.html
-assets/      (app.js, drive.js, styles.css, favicon.svg)
-data/        (tracker.json)
-scripts/     (build_data.py, build_standalone.py)
-.github/     (workflows/pages.yml)
-```
-
-If `.github` did not upload (Windows hides dot-folders in some dialogs), create it
-by hand: **Add file → Create new file**, type
-`.github/workflows/pages.yml` as the name — typing the slashes creates the
-folders — and paste the contents of that file from the zip.
-
-Commit message: `Tracker site`. Click **Commit changes**.
+`perezfiles01-droid/Project-Tracker` exists and I pushed every file to `main`
+for you. Nothing to upload by hand.
 
 ## Step 3 — Turn on Pages
 
@@ -74,7 +35,7 @@ is enough. The workflow in `.github/workflows/pages.yml` takes over.
 Open the **Actions** tab. A run called *Deploy site to GitHub Pages* starts
 within a few seconds and takes about a minute. Green tick = live.
 
-Your URL: **https://perezfiles01-droid.github.io/Tracker/**
+Your URL: **https://perezfiles01-droid.github.io/Project-Tracker/**
 
 It also appears back on Settings → Pages once the first deploy finishes.
 
@@ -97,7 +58,7 @@ https://perezfiles01-droid.github.io
 
 ## Step 6 — Connect Drive
 
-1. Open <https://perezfiles01-droid.github.io/Tracker/>
+1. Open <https://perezfiles01-droid.github.io/Project-Tracker/>
 2. Sidebar → **Settings** → paste the **Client ID** → **Save**
 3. Sidebar → **Google Drive** → **Connect Google Drive** → pick your account
 4. On the "Google hasn't verified this app" screen: **Advanced → Go to Tracker
