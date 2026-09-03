@@ -372,8 +372,15 @@ void main() {
       final url = buildIssueUrl(report, appVersion: '0.8.8', device: 'Pixel 5');
 
       expect(url.host, 'github.com');
-      expect(url.path, '/kodjodevf/mangayomi/issues/new');
+      // This fork's own tracker. A crash here is not the upstream author's
+      // to answer, and the report form the link names lives in this
+      // repository. The expectation was left behind when the link moved.
+      expect(url.path, '/perezfiles01-droid/AvePlay/issues/new');
       expect(url.queryParameters['template'], 'report_issue.yml');
+      // Still 'mangayomi-version': it is the field id in
+      // .github/ISSUE_TEMPLATE/report_issue.yml, so it is what prefills the
+      // form rather than anything the reader reads. Renaming it silently
+      // stops the version arriving.
       expect(url.queryParameters['mangayomi-version'], '0.8.8');
       expect(url.queryParameters['device'], 'Pixel 5');
       expect(url.queryParameters['title'], contains('SocketException'));
