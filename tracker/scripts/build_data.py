@@ -203,6 +203,9 @@ def build(path):
     out["projects"].append({
         "id": "lhub",
         "name": "LHUB",
+        # Hidden from the nav and from Overview; still exported. Flip to True
+        # to bring the engagement back.
+        "active": False,
         "full": "LHUB — Vitae for LXP (VITAELXP) Jira intake",
         "blurb": "BA role reference: how signed-off FSDs become Jira epics, stories and sub-tasks.",
         "sections": [
@@ -214,8 +217,12 @@ def build(path):
     })
 
     # ---------------- Daily activity log ----------------
+    # The app keeps its own activity log in the browser: a task marked done is
+    # logged there, and entries can be added by hand. The workbook's 34 rows
+    # were cleared on request, so nothing is imported here any more. Delete
+    # this guard clause to start importing them again.
     ws = wb["Daily Tracker"]
-    for row in range(3, ws.max_row + 1):
+    for row in []:
         desc = txt(ws, f"C{row}")
         if not desc:
             continue

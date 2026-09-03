@@ -20,8 +20,22 @@ jobs:
         run: node checks/check_views_selftest.mjs
       - name: Views produce balanced markup
         run: node checks/check_views.mjs
+      - name: Links open as tabs, not popup windows
+        run: node checks/check_links_open.mjs
       - name: Paged tables behave
         run: |
           npm install --no-save playwright@1
           npx playwright install --with-deps chromium
           node checks/check_render.mjs
+      - name: Email addresses are complete and readable
+        run: node checks/check_emails.mjs
+      - name: Every page owns a working search
+        run: node checks/check_search.mjs
+      - name: Table searches sit on the left
+        run: node checks/check_layout.mjs
+      - name: Authored collections can be renamed and deleted
+        run: node checks/check_crud.mjs
+      - name: Task table and dialog behave
+        run: node checks/check_tasks.mjs
+      - name: Artifacts and timeline behave
+        run: node checks/check_projects.mjs

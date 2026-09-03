@@ -73,9 +73,17 @@
   }
 
   /* ---------- link inventory (flattened, for search + overview) ---------- */
+  /**
+   * Projects shown in the nav and counted on Overview. A project carrying
+   * active:false stays in the JSON and in Export JSON but leaves the UI, so
+   * a finished engagement comes back by flipping one flag.
+   */
+  const activeProjects = () => state.data.projects.filter((p) => p.active !== false);
+  window.TrackerProjectNames = () => activeProjects().map((p) => p.name);
+
   function allLinks() {
     const out = [];
-    for (const p of state.data.projects) {
+    for (const p of activeProjects()) {
       for (const sec of p.sections) {
         if (sec.type === "links") {
           sec.items.forEach((i) => out.push({ ...i, project: p.name, section: sec.title }));
@@ -106,34 +114,15 @@
 
   /* ---------- views ---------- */
   const views = {
-    overview() {
-      const q = state.query;
-      const links = allLinks().filter((l) => matches(l, q));
-      const daily = state.data.daily;
-      const openComms = state.data.communications.filter((c) => (c.status || "").toLowerCase() !== "completed");
-      const unverified = allLinks().filter((l) => l.url && l.verified === false).length;
-      const stats = [
-        ["Tracked links", allLinks().length],
-        ["Projects", state.data.projects.length],
-        ["Logged activities", daily.length],
-        ["Open comms items", openComms.length],
-        ["Links to verify", unverified],
-      ];
-      return `
-        <h2 class="page">Overview</h2>
-        <p class="lede">Everything from <code>${esc(state.data.source)}</code>, rebuilt
-          ${esc(state.data.generatedAt)}.</p>
-        <div class="stats">${stats.map(([l, n]) =>
-          `<div class="stat"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
-        <h3 class="sec">${q ? `Links matching “${esc(q)}”` : "All links"} (${links.length})</h3>
-        <div class="grid">${links.map((l) => linkCard(l,
-          [`<span class="tag accent">${esc(l.project)}</span>`])).join("") ||
-          `<div class="empty">No links match your search.</div>`}</div>`;
-    },
+    overview() { return window.TrackerLinks.overview(); },
 
     project(p) {
-      const q = state.query;
-      let html = `<h2 class="page">${esc(p.name)}</h2><p class="lede">${esc(p.full)} — ${esc(p.blurb)}</p>`;
+      const key = "project:" + p.id;
+      const q = window.TrackerLinks.findValue(key);
+      let html = `<h2 class="page">${esc(p.name)}</h2><p class="lede">${esc(p.full)} — ${esc(p.blurb)}</p>
+        ${window.TrackerProjects.view(p)}
+        <h2 class="page sub">Reference</h2>
+        <div class="pagetools">${window.TrackerLinks.searchBox(key, "Search this project…")}</div>`;
       for (const sec of p.sections) {
         html += `<h3 class="sec">${esc(sec.title)}</h3>`;
         if (sec.type === "links") {
@@ -146,7 +135,9 @@
           html += table(`${p.id}-sites`, [
             { key: "sn", label: "#", render: (r) => esc(r.sn) },
             { key: "name", label: "Site / document", wrap: true, render: (r) => esc(r.name) },
-            { key: "account", label: "Account used", render: (r) => r.account ? esc(r.account) : `<span class="tag dead">—</span>` },
+            { key: "account", label: "Account used", render: (r) => r.account
+                ? `<button class="acctcell" data-copy="${esc(r.account)}" title="Click to copy ${esc(r.account)}">${esc(r.account)}</button>`
+                : `<span class="tag dead">—</span>` },
             { key: "url", label: "Link", render: linkCell },
           ], items);
         } else if (sec.type === "concerns") {
@@ -179,29 +170,34 @@
     },
 
     daily() {
-      const q = state.query;
-      const projects = [...new Set(state.data.daily.map((d) => d.project).filter(Boolean))];
-      const f = state.filters.daily;
-      const rows = state.data.daily
-        .filter((d) => matches(d, q))
-        .filter((d) => !f || f === "All" || d.project === f);
+      const q = window.TrackerLinks.findValue("daily");
+      const all = window.TrackerTasks.logAll();
+      const rows = all.filter((d) => matches(d, q));
       return `
-        <h2 class="page">Daily activity log</h2>
-        <p class="lede">${rows.length} of ${state.data.daily.length} logged activities.</p>
-        ${chips("daily", projects, f)}
+        <h2 class="page">Daily activity</h2>
+        <p class="lede">${rows.length} of ${all.length} logged activities. A task
+          marked done is logged here automatically; you can also add entries by hand.</p>
+        <div class="pagetools">
+          ${window.TrackerLinks.searchBox("daily", "Search activities…")}
+          <button class="btn primary" data-edit="act:new">Log an activity</button>
+        </div>
         ${table("daily", [
           { key: "date", label: "Date", render: (r) => esc(r.date) },
           { key: "task", label: "Activity", wrap: true, render: (r) => esc(r.task) },
-          { key: "category", label: "Category", render: (r) => r.category ? `<span class="tag">${esc(r.category)}</span>` : "" },
-          { key: "project", label: "Project", render: (r) => r.project ? `<span class="tag accent">${esc(r.project)}</span>` : "" },
-          { key: "source", label: "Source", render: (r) => esc(r.source) },
           { key: "status", label: "Status", render: (r) => statusTag(r.status) },
+          { key: "origin", label: "Source", render: (r) =>
+              `<span class="tag">${r.origin === "task" ? "task completed" : "manual"}</span>` },
           { key: "url", label: "Link", render: linkCell },
+          { key: "id", label: "", render: (r) =>
+              `<span class="actions">
+                 <button class="btn sm" data-edit="act:${esc(r.id)}">Edit</button>
+                 <button class="btn sm" data-remove="act:${esc(r.id)}">Remove</button>
+               </span>` },
         ], rows)}`;
     },
 
     comms() {
-      const q = state.query;
+      const q = window.TrackerLinks.findValue("comms");
       const f = state.filters.comms;
       const statuses = [...new Set(state.data.communications.map((c) => c.status).filter(Boolean))];
       const rows = state.data.communications
@@ -224,26 +220,39 @@
         ], rows)}`;
     },
 
-    drive() { return window.TrackerDrive.view(state.query); },
+    drive() { return window.TrackerDrive.view(window.TrackerLinks.findValue("drive")); },
+
+    todo() { return window.TrackerTasks.view(window.TrackerLinks.findValue("todo")); },
   };
 
   /* ---------- shell ---------- */
+  /**
+   * The nav is grouped data, not positions in a flat list.
+   *
+   * It used to emit "Projects" at index 1 and nothing after, so every entry
+   * past the first project fell under that heading — which is how Daily
+   * activity and Google Drive came to sit under PROJECTS. Groups now carry
+   * their own items, so a third group is a line of data.
+   */
+  const navGroups = () => [
+    { title: "Index", items: [["overview", "Overview", window.TrackerLinks.resolved().length]] },
+    { title: "Projects", items: activeProjects().map((p) => [`p:${p.id}`, p.name, null]) },
+    { title: "Task", items: [
+      ["todo", "To Do List", window.TrackerTasks.load().length],
+      ["daily", "Daily activity", window.TrackerTasks.logAll().length],
+    ] },
+    { title: "Drive", items: [["drive", "Google Drive", driveLinks().length]] },
+  ];
+
+  function navButton([r, label, n]) {
+    return `<button data-route="${r}" aria-current="${state.route === r}">
+        <span>${esc(label)}</span>${n !== null ? `<span class="count">${n}</span>` : ""}</button>`;
+  }
+
   function renderNav() {
-    const items = [
-      ["overview", "Overview", allLinks().length],
-      ...state.data.projects.map((p) => [`p:${p.id}`, p.name, null]),
-      ["daily", "Daily activity", state.data.daily.length],
-      ["comms", "Communications", state.data.communications.length],
-      ["drive", "Google Drive", driveLinks().length],
-    ];
-    $("#nav").innerHTML =
-      `<div class="nav-title">Index</div>` +
-      items.map(([r, label, n], i) => {
-        const head = (i === 1) ? `<div class="nav-title">Projects</div>` : "";
-        const tail = (r === "daily") ? "" : "";
-        return head + `<button data-route="${r}" aria-current="${state.route === r}">
-          <span>${esc(label)}</span>${n !== null ? `<span class="count">${n}</span>` : ""}</button>` + tail;
-      }).join("");
+    $("#nav").innerHTML = navGroups().map((g) =>
+      `<div class="nav-title">${esc(g.title)}</div>` + g.items.map(navButton).join("")
+    ).join("");
   }
 
   function render() {
@@ -252,6 +261,8 @@
     if (state.route.startsWith("p:")) {
       const p = state.data.projects.find((x) => x.id === state.route.slice(2));
       html = p ? views.project(p) : `<div class="empty">Unknown project.</div>`;
+    } else if (state.route.startsWith("g:")) {
+      html = window.TrackerLinks.tableView(state.route.slice(2));
     } else {
       html = (views[state.route] || views.overview)();
     }
@@ -269,6 +280,21 @@
 
   /* ---------- events ---------- */
   document.addEventListener("click", (e) => {
+    // Any account cell copies its full address and says so briefly.
+    const copy = e.target.closest("[data-copy]");
+    if (copy) {
+      const value = copy.dataset.copy;
+      const done = () => {
+        copy.classList.add("copied");
+        const was = copy.textContent;
+        copy.textContent = "copied ✓";
+        setTimeout(() => { copy.textContent = was; copy.classList.remove("copied"); }, 900);
+      };
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(value).then(done, done);
+      else done();
+      return;
+    }
+
     const nav = e.target.closest("[data-route]");
     if (nav && nav.tagName === "BUTTON") return go(nav.dataset.route);
 
@@ -288,23 +314,48 @@
     }
   });
 
-  $("#q").addEventListener("input", (e) => { state.query = e.target.value.trim().toLowerCase(); render(); });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "/" && document.activeElement !== $("#q")) { e.preventDefault(); $("#q").focus(); }
+    if (e.key === "/" && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) {
+      const first = document.querySelector("#view [data-search]");
+      if (first) { e.preventDefault(); first.focus(); }
+    }
     if (e.key === "Escape") document.querySelectorAll(".modal").forEach((m) => (m.hidden = true));
   });
 
-  $("#toggleTheme").addEventListener("click", () => {
-    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem("tracker.theme", next);
-  });
-  if (localStorage.getItem("tracker.theme")) {
-    document.documentElement.dataset.theme = localStorage.getItem("tracker.theme");
+  /* ---------- theme ----------
+     Three modes. System is the one that needed work: the stylesheet had no
+     prefers-color-scheme block at all and index.html hardcoded dark, so the
+     site could not follow the operating system. System now sets no attribute
+     and lets the media query decide, which also means an OS change applies
+     live with no listener here. */
+  function applyTheme(mode) {
+    if (mode === "light" || mode === "dark") document.documentElement.dataset.theme = mode;
+    else delete document.documentElement.dataset.theme;
+    document.querySelectorAll("[data-theme-set]").forEach((b) =>
+      b.setAttribute("aria-pressed", b.dataset.themeSet === mode));
   }
+  const themeMode = () => {
+    const v = localStorage.getItem("tracker.theme");
+    return v === "light" || v === "dark" ? v : "system";
+  };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-theme-set]");
+    if (!b) return;
+    const mode = b.dataset.themeSet;
+    if (mode === "system") localStorage.removeItem("tracker.theme");
+    else localStorage.setItem("tracker.theme", mode);
+    applyTheme(mode);
+  });
+  applyTheme(themeMode());
+  window.TrackerTheme = { applyTheme, themeMode };
 
   $("#exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify({ ...state.data, driveLinks: driveLinks() }, null, 1)],
+    const tasks = window.TrackerTasks.load().map((t) => ({
+      ...t,
+      // Attachment bytes live in IndexedDB and do not travel in a JSON export.
+      attachments: (t.attachments || []).map((a) => ({ name: a.name, kind: a.kind, url: a.url })),
+    }));
+    const blob = new Blob([JSON.stringify({ ...state.data, driveLinks: driveLinks(), tasks }, null, 1)],
       { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tracker — BA project links &amp; documents</title>
+<title>Project Tracker — BA project links &amp; documents</title>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="description" content="Central index of tracking links, sites and documents for the GLASS and EDRMS ADB projects.">
 <link rel="icon" href="assets/favicon.svg">
@@ -14,23 +14,33 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="dot">T</div>
-      <h1>Tracker<span id="brandSub">BA master index</span></h1>
+      <h1>Project Tracker<span id="brandSub">BA master index</span></h1>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
       <button id="openDrive">Google Drive</button>
       <button id="openSettings">Settings</button>
-      <button id="toggleTheme">Toggle theme</button>
       <div id="genStamp" style="margin-top:8px"></div>
     </div>
   </aside>
 
   <main class="main">
     <div class="topbar">
-      <div class="search">
-        <input id="q" type="search" placeholder="Search every link, task and document…" autocomplete="off">
-      </div>
       <button class="btn" id="exportBtn">Export JSON</button>
+      <div class="seg" role="group" aria-label="Theme">
+        <button data-theme-set="system" title="Match your system" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 20.5h8M12 17.5v3"/></svg>
+          <span class="sr">System</span>
+        </button>
+        <button data-theme-set="light" title="Light" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg>
+          <span class="sr">Light</span>
+        </button>
+        <button data-theme-set="dark" title="Dark" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8z"/></svg>
+          <span class="sr">Dark</span>
+        </button>
+      </div>
     </div>
     <div id="view"></div>
   </main>
@@ -60,6 +70,10 @@
 </div>
 
 <script src="config.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/tasks.js"></script>
+<script src="assets/projects.js"></script>
+<script src="assets/links.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/drive.js"></script>
 </body>

@@ -18,37 +18,13 @@
   let browsing = [];         // last fetched file list
   let notice = "";
 
-  // Page indexes for the two paged tables on this page. Kept per-table so
-  // paging one does not reset the other.
+  // Page sizes for the two paged tables on this page. The pager itself is
+  // shared (assets/ui.js) so every table in the app pages the same way.
   const PINNED_COLS = 3, PINNED_ROWS = 2;          // 3 across, 2 down = 6 a page
   const PINNED_PER_PAGE = PINNED_COLS * PINNED_ROWS;
   const FILES_PER_PAGE = 10;
-  const page = { pinned: 0, files: 0 };
-
-  /**
-   * Clamp a page index to a list that may have shrunk (a search, or removing
-   * the last item on the final page) so the table can never render empty with
-   * rows sitting on an earlier page.
-   */
-  const clampPage = (key, total, perPage) => {
-    const last = Math.max(0, Math.ceil(total / perPage) - 1);
-    if (page[key] > last) page[key] = last;
-    return page[key];
-  };
-
-  /** Pager control shared by both tables. Renders nothing for a single page. */
-  const pager = (key, total, perPage) => {
-    const pages = Math.ceil(total / perPage) || 1;
-    if (pages <= 1) return "";
-    const cur = page[key];
-    const from = cur * perPage + 1;
-    const to = Math.min(total, (cur + 1) * perPage);
-    return `<div class="pager">
-      <button class="btn sm" data-page="${key}:prev" ${cur === 0 ? "disabled" : ""}>‹ Prev</button>
-      <span class="pageinfo">Showing ${from}–${to} of ${total} · page ${cur + 1} of ${pages}</span>
-      <button class="btn sm" data-page="${key}:next" ${cur >= pages - 1 ? "disabled" : ""}>Next ›</button>
-    </div>`;
-  };
+  const clampPage = (key, total, perPage) => window.TrackerUI.pageIndex(key, total, perPage);
+  const pager = (key, total, perPage) => window.TrackerUI.pager(key, total, perPage);
 
   // Opened from disk there is no usable web origin, so name the hosted site instead.
   const originHint = () =>
@@ -148,6 +124,49 @@
   function unpin(id) { save(saved().filter((l) => l.id !== id)); window.TrackerRender(); }
 
   /**
+   * Create or correct a saved link through the shared dialog.
+   *
+   * Editing is the point: a mistyped label used to cost a delete and a
+   * re-add, which for a pinned Drive file meant finding it in Drive again.
+   */
+  async function editLink(id) {
+    const list = saved();
+    const cur = id ? list.find((l) => l.id === id) : null;
+    if (id && !cur) return;
+    const values = await window.TrackerUI.formDialog({
+      title: cur ? "Edit link" : "Add a link",
+      intro: cur ? "" : "Any link — Drive, SharePoint, Jira, anything.",
+      submitLabel: cur ? "Save changes" : "Add link",
+      fields: [
+        { name: "name", label: "Label", value: cur ? cur.name : "", placeholder: "What this link is" },
+        { name: "url", label: "URL", value: cur ? cur.url : "", placeholder: "https://…" },
+        { name: "project", label: "Project", value: cur ? cur.project : "Google Drive",
+          help: "GLASS, EDRMS ADB, or anything you like — it shows as a tag." },
+      ],
+    });
+    if (!values) return;
+    if (!values.name && !values.url) return;
+    if (cur) {
+      Object.assign(cur, {
+        name: values.name || cur.name,
+        url: values.url || cur.url,
+        project: values.project || cur.project,
+      });
+    } else {
+      list.push({
+        id: "manual-" + Date.now(),
+        name: values.name || values.url,
+        url: values.url,
+        project: values.project || "Google Drive",
+        meta: "manual",
+        verified: true,
+      });
+    }
+    save(list);
+    window.TrackerRender();
+  }
+
+  /**
    * Pinned links as a table laid out PINNED_COLS across and PINNED_ROWS down.
    * A table rather than a grid so the columns stay aligned as names vary in
    * length, and paged so the page does not grow without limit.
@@ -169,7 +188,8 @@
              <div class="m">${esc(l.project)}${l.modified ? " · modified " + esc(l.modified) : ""}</div>
              <div class="row">
                <span class="tag">${esc(l.meta || "drive")}</span>
-               <button class="btn sm" data-unpin="${esc(l.id)}">Remove</button>
+               <button class="btn sm" data-edit="drive:${esc(l.id)}">Edit</button>
+               <button class="btn sm" data-remove="drive:${esc(l.id)}">Remove</button>
              </div>
            </td>`
         : `<td class="pad"></td>`).join("")}</tr>`);
@@ -227,6 +247,7 @@
         and on the Overview page.</p>
       ${setup}
       ${notice ? `<div class="note" style="border-color:var(--warn)">${esc(notice)}</div>` : ""}
+      <div class="pagetools">${window.TrackerLinks.searchBox("drive", "Search pinned links and files…")}</div>
       <div class="chips" style="margin-top:14px">
         ${clientId
           ? `<button class="btn ${token ? "" : "primary"}" id="driveConnect">${token ? "Refresh files" : "Connect Google Drive"}</button>`
@@ -248,27 +269,16 @@
   document.addEventListener("click", (e) => {
     if (e.target.id === "driveConnect") return token ? listFiles() : connect();
     if (e.target.id === "driveDisconnect") return disconnect();
-    if (e.target.id === "driveAddManual") {
-      const url = prompt("Paste any link (Drive, SharePoint, Jira, anything):");
-      if (!url) return;
-      const name = prompt("Label for this link:", url) || url;
-      const project = prompt("Which project? (GLASS / EDRMS ADB / LHUB / other)", "Google Drive") || "Google Drive";
-      const list = saved();
-      list.push({ id: "manual-" + Date.now(), name, url, project, meta: "manual", verified: true });
-      save(list);
-      return window.TrackerRender();
-    }
+    if (e.target.id === "driveAddManual") return editLink(null);
+
     const p = e.target.closest("[data-pin]");
     if (p) return pin(browsing.find((f) => f.id === p.dataset.pin) || {}, null);
-    const u = e.target.closest("[data-unpin]");
-    if (u) return unpin(u.dataset.unpin);
 
-    const pg = e.target.closest("[data-page]");
-    if (pg) {
-      const [key, dir] = pg.dataset.page.split(":");
-      page[key] = Math.max(0, page[key] + (dir === "next" ? 1 : -1));
-      return window.TrackerRender();
-    }
+    const ed = e.target.closest('[data-edit^="drive:"]');
+    if (ed) return editLink(ed.dataset.edit.slice(6));
+    const rm = e.target.closest('[data-remove^="drive:"]');
+    if (rm) return unpin(rm.dataset.remove.slice(7));
+
 
     if (e.target.id === "openDrive") return window.TrackerGo("drive");
     if (e.target.id === "openSettings" || e.target.closest("[data-open-settings]")) {
@@ -287,7 +297,7 @@
   });
 
   window.TrackerDrive = {
-    view, connect, saved,
+    view, connect, saved, editLink,
     // Test seam for checks/check_render.mjs: the file list and token live in
     // this closure, so a browser-side check has no other way to exercise the
     // real render path without hitting Google.

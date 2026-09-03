@@ -1,13 +1,30 @@
+/* Three theme modes. Every colour is defined on bare :root so no token has
+   its only definition inside a media query; the dark palette is then restated
+   twice — once for "follow the system" (no data-theme attribute set) and once
+   for an explicit dark choice, so the control wins in both directions. */
 :root{
+  color-scheme:light;
+  --bg:#f6f6f7; --panel:#fff; --panel-2:#f0f0f2; --line:#e2e2e6;
+  --text:#18181b; --muted:#52525b; --dim:#71717a;
+  --accent:#ef4444; --accent-2:#991b1b;
+  --ok:#16a34a; --warn:#d97706; --info:#0284c7;
+  --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
   --bg:#0b0b0d; --panel:#141417; --panel-2:#1b1b20; --line:#2a2a31;
   --text:#f4f4f5; --muted:#a1a1aa; --dim:#71717a;
-  --accent:#ef4444; --accent-2:#991b1b;
-  --ok:#22c55e; --warn:#f59e0b; --info:#38bdf8;
-  --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.45);
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+    --ok:#22c55e; --warn:#f59e0b; --info:#38bdf8;
+  }
 }
-:root[data-theme="light"]{
-  --bg:#f6f6f7; --panel:#fff; --panel-2:#f0f0f2; --line:#e2e2e6;
-  --text:#18181b; --muted:#52525b; --dim:#71717a; --shadow:0 8px 24px rgba(0,0,0,.08);
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0b0d; --panel:#141417; --panel-2:#1b1b20; --line:#2a2a31;
+  --text:#f4f4f5; --muted:#a1a1aa; --dim:#71717a;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --ok:#22c55e; --warn:#f59e0b; --info:#38bdf8;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -166,3 +183,125 @@ table.cellgrid .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margi
 .pager .btn[disabled]:hover{border-color:var(--line);color:var(--muted)}
 
 td .namecell{display:block;word-break:break-word}
+
+
+/* ---------- theme segmented control ---------- */
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{
+  background:none;border:0;border-radius:7px;padding:6px 10px;cursor:pointer;
+  color:var(--dim);display:grid;place-items:center;line-height:0;
+}
+.seg button:hover{color:var(--text)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.seg svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- form dialog ---------- */
+.modal .fieldset{display:flex;flex-direction:column}
+.field textarea,.field select{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;outline:none;font:inherit;color:inherit;resize:vertical;
+}
+.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.field input[type="file"]{background:none;border:0;padding:6px 0}
+.attachments{display:flex;flex-direction:column;gap:6px}
+.attrow{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.attrow .attname{flex:1;word-break:break-word}
+.attrow .attdrop{color:var(--dim);font-size:11px}
+.attrow input:checked ~ .attname{text-decoration:line-through;color:var(--dim)}
+
+/* ---------- task board ---------- */
+.taskboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-items:start}
+.taskcol h3.sec{margin-top:0}
+.taskstack{display:flex;flex-direction:column;gap:10px}
+.card.task{cursor:default}
+.card.task.late{border-color:rgba(239,68,68,.5)}
+.card.task .desc{white-space:pre-wrap}
+.card.task .atts{gap:6px}
+.attchip{cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-family:inherit}
+.attchip:hover{border-color:var(--accent);color:var(--text)}
+
+/* ---------- projects table + opened tables ---------- */
+table.cellgrid td.picked{box-shadow:inset 3px 0 0 var(--accent);background:var(--panel-2)}
+.opened{margin-top:26px;border-top:1px solid var(--line);padding-top:6px}
+h2.page.sub{font-size:19px;margin-top:14px}
+.sectionhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.sectionhead h3.sec{margin:22px 0 10px}
+.sectiontools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.search.sectionsearch{flex:0 1 260px;min-width:180px}
+.search.sectionsearch input{padding:8px 11px 8px 32px;border-radius:9px}
+.search.sectionsearch::before{top:6px;left:11px;font-size:15px}
+.accountpick{
+  background:var(--panel);border:1px solid var(--line);border-radius:9px;
+  padding:8px 10px;outline:none;max-width:230px;
+}
+.accountpick:focus{border-color:var(--accent)}
+.linksection{margin-bottom:10px}
+
+/* ---------- link table ---------- */
+table.linktable{min-width:820px}
+table.linktable td.wrap{max-width:340px}
+table.linktable .sitename{font-weight:600}
+table.linktable td.actions{white-space:nowrap;display:flex;gap:6px}
+table.linktable a.btn{display:inline-block;text-decoration:none}
+
+/* ---------- task table ---------- */
+table.tasktable{min-width:760px}
+table.tasktable tr.taskrow{cursor:pointer}
+table.tasktable tr.taskrow.open{background:var(--panel-2)}
+table.tasktable tr.taskrow.done td{color:var(--dim)}
+table.tasktable tr.detail td{background:var(--panel-2)}
+.taskdetail{display:flex;flex-direction:column;gap:9px;padding:4px 2px}
+.taskdetail .desc{white-space:pre-wrap;color:var(--text)}
+.taskdetail .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+td .actions,span.actions{display:inline-flex;gap:6px;white-space:nowrap}
+
+/* ---------- account / email access cells ---------- */
+/* Addresses must never break mid-word: a wrapped jperez@contractor.adb.org
+   reads as two different values. Give the column room and keep each on one
+   line, clickable to copy the whole thing. */
+td.acct, td:has(> .acctcell){white-space:nowrap}
+.acctcell{
+  background:none;border:0;padding:0;margin:0;cursor:pointer;
+  color:var(--text);font:inherit;text-align:left;white-space:nowrap;
+  border-bottom:1px dotted var(--line);
+}
+.acctcell:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.acctcell.copied{color:var(--ok);border-bottom-color:var(--ok)}
+table.linktable th:nth-child(3), table.linktable td:nth-child(3){min-width:230px}
+
+/* Page-level tools row: search on the LEFT, actions after it. */
+.pagetools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pagetools .search{flex:0 1 320px;min-width:200px}
+
+/* The search belongs beside the table it filters, not across the page from it. */
+.sectionleft{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.sectionleft h3.sec{margin:22px 0 10px;white-space:nowrap}
+
+/* ---------- progress bars (project timeline) ---------- */
+.progress{
+  display:inline-block;width:110px;height:8px;border-radius:999px;
+  background:var(--panel-2);border:1px solid var(--line);overflow:hidden;vertical-align:middle;
+}
+.progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.pctnum{font-size:12px;color:var(--muted);margin-left:8px;font-variant-numeric:tabular-nums}
+.rollup{display:inline-flex;align-items:center;gap:2px;font-size:12.5px;color:var(--dim);margin-right:6px}
+td.pcell{white-space:nowrap}
+h2.page.sub{font-size:18px;margin-top:34px}
+
+/* Artifact and timeline tables: the name column carries the weight, and a
+   seeded note must not turn one row into a screenful. */
+table.projtable{table-layout:fixed}
+table.projtable td, table.projtable th{vertical-align:top}
+table.projtable .namecol{width:30%}
+table.projtable .phasecol{width:16%}
+table.projtable .datecol{width:104px;white-space:nowrap}
+table.projtable .progcol{width:170px;white-space:nowrap}
+table.projtable .statuscol{width:120px}
+table.projtable .actcol{width:150px;white-space:nowrap}
+/* Two lines of note, then ellipsis; the whole note is in the title tooltip
+   and in the Edit dialog, so nothing is lost by clamping it here. */
+table.projtable .note2{
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;font-size:12.5px;color:var(--muted);margin-top:3px;
+}
