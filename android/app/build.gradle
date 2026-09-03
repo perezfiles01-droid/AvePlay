@@ -64,46 +64,24 @@ android {
         }
     }
 
-    // Honour --target-platform for the prebuilt native libraries too.
+    // Keep a single-ABI build to one ABI, prebuilt libraries included.
     //
-    // Flutter's own engine and app libraries follow that flag, but the ones
-    // that arrive as prebuilt archives - libgojni from the torrent server
+    // Flutter's own engine and app libraries follow --target-platform, but the
+    // ones that arrive as prebuilt archives - libgojni from the torrent server
     // .aar, libmpv from media_kit - are packaged for every architecture they
-    // ship, whatever was asked for. In a single-ABI build that left 37 MB of
-    // x86_64 and armeabi-v7a slices in an APK meant for one arm64 phone.
+    // ship, whatever was asked for. That left 37 MB of x86_64 and armeabi-v7a
+    // in an APK built for one arm64 phone.
     //
-    // Reading the flag rather than hardcoding an ABI keeps the multi-platform
-    // release build untouched: it passes several targets, matches nothing
-    // here, and no filter is applied.
-    def singleAbi = [
-        "android-arm64": "arm64-v8a",
-        "android-arm"  : "armeabi-v7a",
-        "android-x64"  : "x86_64",
-    ][project.findProperty("target-platform")]
-    if (singleAbi != null) {
+    // Driven by an environment variable set by the workflow rather than by
+    // Flutter's own target-platform property, which is not visible here. A
+    // build that does not set it - the multi-platform release build, or any
+    // local build - is unaffected.
+    def singleAbi = System.getenv("AVEPLAY_SINGLE_ABI")
+    if (singleAbi) {
         defaultConfig {
             ndk {
                 abiFilters singleAbi
             }
-        }
-    }
-
-    signingConfigs {
-       release {
-           keyAlias keystoreProperties['keyAlias']
-           keyPassword keystoreProperties['keyPassword']
-           storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-           storePassword keystoreProperties['storePassword']
-       }
-   }
-   buildTypes {
-       release {
-           signingConfig signingConfigs.release
-       }
-   }
-   repositories {
-        flatDir {
-            dirs 'libs'
         }
     }
 }
