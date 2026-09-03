@@ -85,6 +85,67 @@ jobs:
           mv build/app/outputs/flutter-apk/app-profile.apk AvePlay-arm64.apk
           ls -lh AvePlay-arm64.apk
 
+      # A second copy on github.io, because the release asset is not reachable
+      # from every network. GitHub serves release pages from github.com but the
+      # bytes themselves from objects.githubusercontent.com, and blocklists -
+      # Private DNS resolvers, ad blockers - routinely carry that host while
+      # leaving github.com alone. The download then fails at zero bytes: the
+      # browser has read the size off the redirect and cannot reach the host
+      # holding the file. Pages is served from a different domain, which those
+      # lists do not block, so this is the copy that works behind one.
+      #
+      # This is the classic branch source rather than actions/deploy-pages,
+      # which deploys through an environment that by default only the default
+      # branch may use. A branch needs no such permission, so a build from here
+      # publishes without waiting to be merged.
+      #
+      # The branch is rewritten from scratch on every run rather than added to,
+      # so the repository carries one copy of the APK and not one per build.
+      - name: Mirror to GitHub Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p site
+          cp AvePlay-arm64.apk site/
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>AvePlay test build</title>
+          <style>
+            body { font: 16px/1.6 system-ui, sans-serif; margin: 0; padding: 2.5rem 1.25rem;
+                   background: #12100f; color: #f2ece8; }
+            main { max-width: 34rem; margin: 0 auto; }
+            h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+            p { color: #c9bfb8; }
+            a.dl { display: block; margin: 2rem 0 1rem; padding: 1rem; border-radius: .75rem;
+                   background: #f6c1b2; color: #2b1b16; text-align: center; font-weight: 600;
+                   text-decoration: none; }
+            code { background: #241f1d; padding: .15em .4em; border-radius: .3em; }
+          </style>
+          <main>
+            <h1>AvePlay test build</h1>
+            <p>For 64-bit ARM phones and tablets. Not for an emulator.</p>
+            <a class="dl" href="AvePlay-arm64.apk">Download the APK</a>
+            <p>Debug signed, so it installs alongside rather than over a release
+            build. Android will ask you to allow installing from your browser
+            the first time.</p>
+            <p>Built from <code>COMMIT_SHA</code>.</p>
+          </main>
+          HTML
+          sed -i "s/COMMIT_SHA/${GITHUB_SHA}/" site/index.html
+          touch site/.nojekyll
+          cd site
+          git init -q
+          git checkout -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Test build from ${GITHUB_SHA}"
+          git push -q --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+
       - name: Publish as a prerelease asset
         uses: ncipollo/release-action@v1
         with:
