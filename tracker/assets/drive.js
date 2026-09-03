@@ -135,7 +135,7 @@
         <button class="btn ${token ? "" : "primary"}" id="driveConnect">${token ? "Refresh files" : "Connect Google Drive"}</button>
         ${token ? `<button class="btn" id="driveDisconnect">Disconnect</button>` : ""}
         <button class="btn" id="driveAddManual">Add a link manually</button>
-        ${apiKey ? "" : `<span class="tag warn" style="align-self:center">API key not set (optional)</span>`}
+        ${apiKey ? "" : `<span class="tag dead" style="align-self:center">No API key needed</span>`}
       </div>
 
       <h3 class="sec">Pinned Drive links (${list.length})</h3>

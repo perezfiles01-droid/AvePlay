@@ -69,3 +69,22 @@ Full walkthrough in `README.md` → *Connecting Google Drive*. Short version:
 6. **Google Drive** in the sidebar → **Connect Google Drive**.
 
 The Client ID is stored in your browser only, never in the repository.
+
+---
+
+## Quickest start: no server at all
+
+`Tracker-standalone.html` is the entire site — CSS, JavaScript and data — inlined
+into one file. Save it anywhere and double-click it. Everything works offline:
+search, filters, sortable tables, every project page, Export JSON.
+
+The one thing it *cannot* do from `file://` is Google Drive sign-in: Google
+rejects OAuth from a page with no web origin. Drive needs the site served over
+`http://localhost:8000` or a real URL.
+
+Rebuild it after changing the workbook:
+
+```bash
+python3 scripts/build_data.py BA_Master_Tracker.xlsx
+python3 scripts/build_standalone.py
+```
