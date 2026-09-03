@@ -75,6 +75,15 @@ class ServiceAvailability {
   /// Records that [service] answered, clearing any refusal.
   static void markUp(DiscoveryService service) => _down.remove(service);
 
+  /// Forgets [service]'s refusal so the next call reaches the network.
+  ///
+  /// For a deliberate Retry. The cooldown exists to stop screen builds
+  /// hammering a service that is shedding load, but it also meant a reader
+  /// pressing Retry was refused locally for the rest of the ten minutes,
+  /// without a request ever being sent — a button that could not do the one
+  /// thing it offered.
+  static void clear(DiscoveryService service) => _down.remove(service);
+
   static void clearForTest() => _down.clear();
 }
 

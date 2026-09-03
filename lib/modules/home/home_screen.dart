@@ -14,6 +14,7 @@ import 'package:mangayomi/modules/library/widgets/library_entry_utils.dart';
 import 'package:mangayomi/providers/l10n_providers.dart';
 import 'package:mangayomi/repositories/history_repository.dart';
 import 'package:mangayomi/services/anilist_discovery.dart';
+import 'package:mangayomi/services/discovery/service_availability.dart';
 import 'package:mangayomi/utils/extensions/build_context_extensions.dart';
 import 'package:mangayomi/utils/cached_network.dart';
 import 'package:mangayomi/utils/extensions/chapter_extensions.dart';
@@ -64,7 +65,27 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Forgets every recorded outage, so a deliberate refetch reaches the
+  /// network.
+  ///
+  /// A refusal puts a service in a ten minute cooldown and every call during it
+  /// fails locally without a request. That is right for a screen rebuilding
+  /// itself and wrong for a person asking again: without this, both Retry and
+  /// pull-to-refresh were guaranteed to fail for the rest of the cooldown.
+  void _askAgain() {
+    for (final service in DiscoveryService.values) {
+      ServiceAvailability.clear(service);
+    }
+  }
+
+  /// One row, asked again from scratch.
+  void _retry(ProviderOrFamily provider) {
+    _askAgain();
+    ref.invalidate(provider);
+  }
+
   Future<void> _refresh() async {
+    _askAgain();
     ref.invalidate(trendingAnimeProvider);
     ref.invalidate(recentlyAiredAnimeProvider);
     ref.invalidate(seasonAnimeProvider);
@@ -170,21 +191,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: _RemoteRail(
                 title: 'Top Trending',
                 value: trending,
-                onRetry: () => ref.invalidate(trendingAnimeProvider),
+                onRetry: () => _retry(trendingAnimeProvider),
               ),
             ),
             SliverToBoxAdapter(
               child: _RemoteRail(
                 title: 'New This Week',
                 value: ref.watch(recentlyAiredAnimeProvider),
-                onRetry: () => ref.invalidate(recentlyAiredAnimeProvider),
+                onRetry: () => _retry(recentlyAiredAnimeProvider),
               ),
             ),
             SliverToBoxAdapter(
               child: _RemoteRail(
                 title: 'Top ${_seasonLabel(season, year)}',
                 value: ref.watch(seasonAnimeProvider),
-                onRetry: () => ref.invalidate(seasonAnimeProvider),
+                onRetry: () => _retry(seasonAnimeProvider),
               ),
             ),
             if (recent.isNotEmpty)
@@ -280,7 +301,7 @@ class _RemoteRail extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (_, _) => const _CardPlaceholder(),
           ),
-          error: (_, _) => _RailError(onRetry: onRetry),
+          error: (error, _) => _RailError(error: error, onRetry: onRetry),
           data: (items) => items.isEmpty
               ? Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -307,10 +328,23 @@ class _RemoteRail extends StatelessWidget {
 
 /// A row that could not be fetched. Says so and offers another go, rather
 /// than leaving a gap that reads as "there is nothing".
+///
+/// It prints the reason the service itself gave. This used to be a fixed line
+/// naming AniList, which was wrong twice over: it named AniList even when the
+/// Kitsu fallback was what failed, and it threw away the sentence the service
+/// sent explaining itself — the difference between "Couldn't reach AniList"
+/// and "AniList has temporarily disabled their API".
 class _RailError extends StatelessWidget {
-  const _RailError({required this.onRetry});
+  const _RailError({required this.error, required this.onRetry});
 
+  final Object error;
   final VoidCallback onRetry;
+
+  String get _message => switch (error) {
+    DiscoveryUnavailable(:final service, :final reason) =>
+      '${service.label} $reason.',
+    _ => 'Could not load this row.',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +354,7 @@ class _RailError extends StatelessWidget {
         children: [
           Flexible(
             child: Text(
-              "Couldn't reach AniList.",
+              _message,
               style: TextStyle(color: context.secondaryColor),
             ),
           ),
