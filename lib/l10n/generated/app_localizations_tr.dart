@@ -2378,10 +2378,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get auth_unlock_msg =>
-      'Mangayomi\'yi kilitlemek için kimliğinizi doğrulayın';
+      'AvePlay\'yi kilitlemek için kimliğinizi doğrulayın';
 
   @override
-  String get app_locked => 'Mangayomi kilitli';
+  String get app_locked => 'AvePlay kilitli';
 
   @override
   String get auth_to_continue => 'Devam etmek için kimliğinizi doğrulayın';
@@ -2846,7 +2846,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get something_went_wrong => 'Bir şeyler ters gitti';
 
   @override
-  String get startup_failed => 'Mangayomi başlatılamadı';
+  String get startup_failed => 'AvePlay başlatılamadı';
 
   @override
   String sources_with_no_results(int count) {
@@ -3094,7 +3094,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get error_reports_report => 'GitHub\'da Bildir';
 
   @override
-  String get error_reports_banner => 'Mangayomi bir hatayla karşılaştı';
+  String get error_reports_banner => 'AvePlay bir hatayla karşılaştı';
 
   @override
   String get error_reports_banner_action => 'Görüntüle';
@@ -3110,7 +3110,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3124,7 +3124,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Paylaşım kullanılamıyor, panoya kopyalandı.';
 
   @override
-  String get onboarding_title => 'Mangayomi\'ye Hoş Geldiniz';
+  String get onboarding_title => 'AvePlay\'ye Hoş Geldiniz';
 
   @override
   String get onboarding_libraries_body =>

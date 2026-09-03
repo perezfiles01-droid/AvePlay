@@ -4340,13 +4340,13 @@ abstract class AppLocalizations {
   /// No description provided for @auth_unlock_msg.
   ///
   /// In en, this message translates to:
-  /// **'Authenticate to unlock Mangayomi'**
+  /// **'Authenticate to unlock AvePlay'**
   String get auth_unlock_msg;
 
   /// No description provided for @app_locked.
   ///
   /// In en, this message translates to:
-  /// **'Mangayomi is locked'**
+  /// **'AvePlay is locked'**
   String get app_locked;
 
   /// No description provided for @auth_to_continue.
@@ -5192,7 +5192,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_failed.
   ///
   /// In en, this message translates to:
-  /// **'Mangayomi could not finish starting up'**
+  /// **'AvePlay could not finish starting up'**
   String get startup_failed;
 
   /// Header of the collapsed group in global search holding every source that failed or found nothing.
@@ -5570,7 +5570,7 @@ abstract class AppLocalizations {
   /// No description provided for @error_reports_banner.
   ///
   /// In en, this message translates to:
-  /// **'Mangayomi ran into an error'**
+  /// **'AvePlay ran into an error'**
   String get error_reports_banner;
 
   /// No description provided for @error_reports_banner_action.
@@ -5600,7 +5600,7 @@ abstract class AppLocalizations {
   /// No description provided for @error_reports_extension_failure.
   ///
   /// In en, this message translates to:
-  /// **'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.'**
+  /// **'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.'**
   String get error_reports_extension_failure;
 
   /// No description provided for @error_reports_already_reported.
@@ -5624,7 +5624,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_title.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Mangayomi'**
+  /// **'Welcome to AvePlay'**
   String get onboarding_title;
 
   /// No description provided for @onboarding_libraries_body.
@@ -5744,7 +5744,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_body.
   ///
   /// In en, this message translates to:
-  /// **'Mangayomi comes with no sources of its own. Add a repository and the extensions it holds become available to install and browse.'**
+  /// **'AvePlay comes with no sources of its own. Add a repository and the extensions it holds become available to install and browse.'**
   String get onboarding_body;
 
   /// No description provided for @onboarding_add.

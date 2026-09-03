@@ -2370,10 +2370,10 @@ class AppLocalizationsAs extends AppLocalizations {
   String get tracked => 'ট্র্যাক কৰা';
 
   @override
-  String get auth_unlock_msg => 'Mangayomi আনলক কৰিবলৈ প্রমাণ কৰক';
+  String get auth_unlock_msg => 'AvePlay আনলক কৰিবলৈ প্রমাণ কৰক';
 
   @override
-  String get app_locked => 'Mangayomi লক কৰা আছে';
+  String get app_locked => 'AvePlay লক কৰা আছে';
 
   @override
   String get auth_to_continue => 'অব্যাহত ৰাখিবলৈ প্রমাণ কৰক';
@@ -2836,7 +2836,7 @@ class AppLocalizationsAs extends AppLocalizations {
   String get something_went_wrong => 'কিবা ভুল হ\'ল';
 
   @override
-  String get startup_failed => 'Mangayomi আৰম্ভ হ\'ব নোৱাৰিলে';
+  String get startup_failed => 'AvePlay আৰম্ভ হ\'ব নোৱাৰিলে';
 
   @override
   String sources_with_no_results(int count) {
@@ -3084,7 +3084,7 @@ class AppLocalizationsAs extends AppLocalizations {
   String get error_reports_report => 'GitHub ত ৰিপ\'ৰ্ট কৰক';
 
   @override
-  String get error_reports_banner => 'Mangayomi ত এটা ত্ৰুটি হ\'ল';
+  String get error_reports_banner => 'AvePlay ত এটা ত্ৰুটি হ\'ল';
 
   @override
   String get error_reports_banner_action => 'চাওক';
@@ -3100,7 +3100,7 @@ class AppLocalizationsAs extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3114,7 +3114,7 @@ class AppLocalizationsAs extends AppLocalizations {
       'শ্বেয়াৰ উপলব্ধ নহয়, ক্লিপব\'ৰ্ডলৈ কপি কৰা হ\'ল।';
 
   @override
-  String get onboarding_title => 'Mangayomi লৈ স্বাগতম';
+  String get onboarding_title => 'AvePlay লৈ স্বাগতম';
 
   @override
   String get onboarding_libraries_body => 'আপুনি কি পঢ়িব আৰু চাব বিচাৰে বাছক।';

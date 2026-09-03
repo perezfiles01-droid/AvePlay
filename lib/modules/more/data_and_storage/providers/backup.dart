@@ -38,7 +38,7 @@ Future<void> doBackUp(
   final compression = ref.read(backupCompressionLevelProvider);
   final compressionLevel = compression.clamp(0, 9).toInt();
   try {
-    final zipPath = await writeMangayomiBackupZip(
+    final zipPath = await writeAvePlayBackupZip(
       list: list,
       directory: path,
       compressionLevel: compressionLevel,
@@ -68,7 +68,7 @@ Future<void> doBackUp(
                 ShareParams(
                   files: [XFile(zipPath)],
                   subject: p.basename(zipPath),
-                  title: "Share Mangayomi backup file",
+                  title: "Share AvePlay backup file",
                   sharePositionOrigin: box == null
                       ? null
                       : box.localToGlobal(Offset.zero) & box.size,
@@ -108,7 +108,7 @@ Future<void> doBackUp(
   }
 }
 
-Future<String> writeMangayomiBackupZip({
+Future<String> writeAvePlayBackupZip({
   required List<int> list,
   required String directory,
   int compressionLevel = 6,

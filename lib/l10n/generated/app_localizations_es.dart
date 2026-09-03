@@ -2398,10 +2398,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tracked => 'Rastreado';
 
   @override
-  String get auth_unlock_msg => 'Autentifícate para desbloquear Mangayomi';
+  String get auth_unlock_msg => 'Autentifícate para desbloquear AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi está bloqueado';
+  String get app_locked => 'AvePlay está bloqueado';
 
   @override
   String get auth_to_continue => 'Autentifícate para continuar';
@@ -2867,7 +2867,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get something_went_wrong => 'Algo salió mal';
 
   @override
-  String get startup_failed => 'Mangayomi no pudo completar el inicio';
+  String get startup_failed => 'AvePlay no pudo completar el inicio';
 
   @override
   String sources_with_no_results(int count) {
@@ -3121,7 +3121,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get error_reports_report => 'Informar en GitHub';
 
   @override
-  String get error_reports_banner => 'Mangayomi encontró un error';
+  String get error_reports_banner => 'AvePlay encontró un error';
 
   @override
   String get error_reports_banner_action => 'Ver';
@@ -3137,7 +3137,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3151,7 +3151,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'La función de compartir no está disponible en esta plataforma, por lo que se copió al portapapeles.';
 
   @override
-  String get onboarding_title => 'Bienvenido a Mangayomi';
+  String get onboarding_title => 'Bienvenido a AvePlay';
 
   @override
   String get onboarding_libraries_body =>
@@ -3223,7 +3223,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboarding_body =>
-      'Mangayomi no incluye fuentes propias. Añade un repositorio para que sus extensiones estén disponibles para instalar y explorar.';
+      'AvePlay no incluye fuentes propias. Añade un repositorio para que sus extensiones estén disponibles para instalar y explorar.';
 
   @override
   String get onboarding_add => 'Añadir repositorio';
@@ -5725,10 +5725,10 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get tracked => 'Rastreado';
 
   @override
-  String get auth_unlock_msg => 'Autentifícate para desbloquear Mangayomi';
+  String get auth_unlock_msg => 'Autentifícate para desbloquear AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi está bloqueado';
+  String get app_locked => 'AvePlay está bloqueado';
 
   @override
   String get auth_to_continue => 'Autentifícate para continuar';
@@ -6193,7 +6193,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get something_went_wrong => 'Algo salió mal';
 
   @override
-  String get startup_failed => 'Mangayomi no pudo completar el inicio';
+  String get startup_failed => 'AvePlay no pudo completar el inicio';
 
   @override
   String sources_with_no_results(int count) {
@@ -6440,7 +6440,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get error_reports_report => 'Informar en GitHub';
 
   @override
-  String get error_reports_banner => 'Mangayomi encontró un error';
+  String get error_reports_banner => 'AvePlay encontró un error';
 
   @override
   String get error_reports_banner_action => 'Ver';
@@ -6459,7 +6459,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
       'La función de compartir no está disponible en esta plataforma, por lo que se copió al portapapeles.';
 
   @override
-  String get onboarding_title => 'Bienvenido a Mangayomi';
+  String get onboarding_title => 'Bienvenido a AvePlay';
 
   @override
   String get onboarding_libraries_body =>
@@ -6531,7 +6531,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get onboarding_body =>
-      'Mangayomi no incluye fuentes propias. Añade un repositorio para que sus extensiones estén disponibles para instalar y explorar.';
+      'AvePlay no incluye fuentes propias. Añade un repositorio para que sus extensiones estén disponibles para instalar y explorar.';
 
   @override
   String get onboarding_add => 'Añadir repositorio';

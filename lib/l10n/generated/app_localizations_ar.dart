@@ -2376,10 +2376,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tracked => 'تتبع';
 
   @override
-  String get auth_unlock_msg => 'المصادقة لفتح قفل Mangayomi';
+  String get auth_unlock_msg => 'المصادقة لفتح قفل AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi مقفول';
+  String get app_locked => 'AvePlay مقفول';
 
   @override
   String get auth_to_continue => 'المصادقة للمتابعة';
@@ -2836,7 +2836,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get something_went_wrong => 'حدث خطأ ما';
 
   @override
-  String get startup_failed => 'تعذر على Mangayomi إكمال بدء التشغيل';
+  String get startup_failed => 'تعذر على AvePlay إكمال بدء التشغيل';
 
   @override
   String sources_with_no_results(int count) {
@@ -3084,7 +3084,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get error_reports_report => 'إبلاغ على GitHub';
 
   @override
-  String get error_reports_banner => 'واجه Mangayomi خطأ';
+  String get error_reports_banner => 'واجه AvePlay خطأ';
 
   @override
   String get error_reports_banner_action => 'عرض';
@@ -3100,7 +3100,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3114,7 +3114,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'المشاركة غير متاحة، تم النسخ إلى الحافظة.';
 
   @override
-  String get onboarding_title => 'مرحباً بك في Mangayomi';
+  String get onboarding_title => 'مرحباً بك في AvePlay';
 
   @override
   String get onboarding_libraries_body => 'اختر ما تقرأه وتشاهده.';

@@ -2390,10 +2390,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get auth_unlock_msg =>
-      'Authentifizieren Sie sich, um Mangayomi freizuschalten';
+      'Authentifizieren Sie sich, um AvePlay freizuschalten';
 
   @override
-  String get app_locked => 'Mangayomi ist gesperrt';
+  String get app_locked => 'AvePlay ist gesperrt';
 
   @override
   String get auth_to_continue => 'Authentifizieren Sie sich, um fortzufahren';
@@ -2857,7 +2857,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get something_went_wrong => 'Etwas ist schiefgelaufen';
 
   @override
-  String get startup_failed => 'Mangayomi konnte nicht gestartet werden';
+  String get startup_failed => 'AvePlay konnte nicht gestartet werden';
 
   @override
   String sources_with_no_results(int count) {
@@ -3108,7 +3108,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get error_reports_report => 'Auf GitHub melden';
 
   @override
-  String get error_reports_banner => 'Mangayomi hat einen Fehler festgestellt';
+  String get error_reports_banner => 'AvePlay hat einen Fehler festgestellt';
 
   @override
   String get error_reports_banner_action => 'Anzeigen';
@@ -3124,7 +3124,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3138,7 +3138,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Teilen nicht verfügbar, in Zwischenablage kopiert.';
 
   @override
-  String get onboarding_title => 'Willkommen bei Mangayomi';
+  String get onboarding_title => 'Willkommen bei AvePlay';
 
   @override
   String get onboarding_libraries_body =>

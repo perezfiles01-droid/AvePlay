@@ -2321,10 +2321,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tracked => '追跡中';
 
   @override
-  String get auth_unlock_msg => 'Mangayomiのロックを解除するために認証してください';
+  String get auth_unlock_msg => 'AvePlayのロックを解除するために認証してください';
 
   @override
-  String get app_locked => 'Mangayomiはロックされています';
+  String get app_locked => 'AvePlayはロックされています';
 
   @override
   String get auth_to_continue => '続行するために認証してください';
@@ -2782,7 +2782,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get something_went_wrong => '問題が発生しました';
 
   @override
-  String get startup_failed => 'Mangayomiの起動に失敗しました';
+  String get startup_failed => 'AvePlayの起動に失敗しました';
 
   @override
   String sources_with_no_results(int count) {
@@ -3033,7 +3033,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3046,7 +3046,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get share_unavailable_copied => '共有機能が利用できないためクリップボードにコピーしました。';
 
   @override
-  String get onboarding_title => 'Mangayomiへようこそ';
+  String get onboarding_title => 'AvePlayへようこそ';
 
   @override
   String get onboarding_libraries_body => '読みたいもの、観たいものを選択してください。';

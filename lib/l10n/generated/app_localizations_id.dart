@@ -2374,10 +2374,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get tracked => 'Dilacak';
 
   @override
-  String get auth_unlock_msg => 'Autentikasi untuk membuka kunci Mangayomi';
+  String get auth_unlock_msg => 'Autentikasi untuk membuka kunci AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi terkunci';
+  String get app_locked => 'AvePlay terkunci';
 
   @override
   String get auth_to_continue => 'Autentikasi untuk melanjutkan';
@@ -2840,7 +2840,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get something_went_wrong => 'Terjadi kesalahan';
 
   @override
-  String get startup_failed => 'Mangayomi gagal menyelesaikan peluncuran';
+  String get startup_failed => 'AvePlay gagal menyelesaikan peluncuran';
 
   @override
   String sources_with_no_results(int count) {
@@ -3090,7 +3090,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get error_reports_report => 'Laporkan di GitHub';
 
   @override
-  String get error_reports_banner => 'Mangayomi mengalami kesalahan';
+  String get error_reports_banner => 'AvePlay mengalami kesalahan';
 
   @override
   String get error_reports_banner_action => 'Lihat';
@@ -3106,7 +3106,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3120,7 +3120,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Berbagi tidak tersedia, disalin ke papan klip.';
 
   @override
-  String get onboarding_title => 'Selamat datang di Mangayomi';
+  String get onboarding_title => 'Selamat datang di AvePlay';
 
   @override
   String get onboarding_libraries_body =>

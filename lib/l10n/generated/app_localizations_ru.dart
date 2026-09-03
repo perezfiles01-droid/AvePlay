@@ -2407,10 +2407,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get auth_unlock_msg =>
-      'Аутентифицируйтесь, чтобы разблокировать Mangayomi';
+      'Аутентифицируйтесь, чтобы разблокировать AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi заблокирован';
+  String get app_locked => 'AvePlay заблокирован';
 
   @override
   String get auth_to_continue => 'Аутентифицируйтесь, чтобы продолжить';
@@ -2875,7 +2875,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get something_went_wrong => 'Что-то пошло не так';
 
   @override
-  String get startup_failed => 'Mangayomi не удалось завершить запуск';
+  String get startup_failed => 'AvePlay не удалось завершить запуск';
 
   @override
   String sources_with_no_results(int count) {
@@ -3128,7 +3128,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get error_reports_report => 'Сообщить на GitHub';
 
   @override
-  String get error_reports_banner => 'Mangayomi столкнулся с ошибкой';
+  String get error_reports_banner => 'AvePlay столкнулся с ошибкой';
 
   @override
   String get error_reports_banner_action => 'Посмотреть';
@@ -3144,7 +3144,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3158,7 +3158,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Отправка недоступна, скопировано в буфер обмена.';
 
   @override
-  String get onboarding_title => 'Добро пожаловать в Mangayomi';
+  String get onboarding_title => 'Добро пожаловать в AvePlay';
 
   @override
   String get onboarding_libraries_body =>

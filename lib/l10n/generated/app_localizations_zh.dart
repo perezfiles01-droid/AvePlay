@@ -2295,10 +2295,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tracked => '已追踪';
 
   @override
-  String get auth_unlock_msg => '验证以解锁Mangayomi';
+  String get auth_unlock_msg => '验证以解锁AvePlay';
 
   @override
-  String get app_locked => 'Mangayomi已锁定';
+  String get app_locked => 'AvePlay已锁定';
 
   @override
   String get auth_to_continue => '验证以继续';
@@ -2740,7 +2740,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get something_went_wrong => '出错了';
 
   @override
-  String get startup_failed => 'Mangayomi 无法完成启动';
+  String get startup_failed => 'AvePlay 无法完成启动';
 
   @override
   String sources_with_no_results(int count) {
@@ -2975,7 +2975,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get error_reports_report => '在 GitHub 上反馈';
 
   @override
-  String get error_reports_banner => 'Mangayomi 遇到了一个错误';
+  String get error_reports_banner => 'AvePlay 遇到了一个错误';
 
   @override
   String get error_reports_banner_action => '查看';
@@ -2991,7 +2991,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3004,7 +3004,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get share_unavailable_copied => '此平台不支持分享，已复制到剪贴板。';
 
   @override
-  String get onboarding_title => '欢迎使用 Mangayomi';
+  String get onboarding_title => '欢迎使用 AvePlay';
 
   @override
   String get onboarding_libraries_body => '选择您要阅读和观看的内容类型。';

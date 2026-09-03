@@ -2836,7 +2836,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get something_went_wrong => 'कुछ गलत हो गया';
 
   @override
-  String get startup_failed => 'Mangayomi प्रारंभ नहीं हो सका';
+  String get startup_failed => 'AvePlay प्रारंभ नहीं हो सका';
 
   @override
   String sources_with_no_results(int count) {
@@ -3085,7 +3085,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get error_reports_report => 'GitHub पर रिपोर्ट करें';
 
   @override
-  String get error_reports_banner => 'Mangayomi में त्रुटि आई';
+  String get error_reports_banner => 'AvePlay में त्रुटि आई';
 
   @override
   String get error_reports_banner_action => 'देखें';
@@ -3101,7 +3101,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get error_reports_extension_failure =>
-      'This came from an extension, not from Mangayomi. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
+      'This came from an extension, not from AvePlay. Extensions are written and maintained by whoever runs the repository you installed this source from, so a fix has to go there. The source name and what you were opening are the useful details to give them.';
 
   @override
   String get error_reports_already_reported => 'Already reported';
@@ -3115,7 +3115,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'साझाकरण उपलब्ध नहीं है, क्लिपबोर्ड पर कॉपी किया गया।';
 
   @override
-  String get onboarding_title => 'Mangayomi में आपका स्वागत है';
+  String get onboarding_title => 'AvePlay में आपका स्वागत है';
 
   @override
   String get onboarding_libraries_body =>
