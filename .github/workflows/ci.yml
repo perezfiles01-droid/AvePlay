@@ -9,8 +9,13 @@ name: CI
 on:
   pull_request:
     branches: [main]
-  # push:
-  #   branches: [main]
+  # Analyze and test also run on a working branch, so a guard is proven before
+  # a pull request exists. The two build jobs stay pull-request only: they take
+  # a quarter of an hour each and debug-apk.yml already builds every push.
+  push:
+    branches:
+      - main
+      - "claude/**"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -39,7 +44,32 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+  # The regression suite. Without this job the tests in test/ are never
+  # executed by anything: they were committed, and nothing ran them, which
+  # reads exactly like protection while providing none.
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Generated sources are committed, so this needs no Rust or codegen
+      # toolchain, the same reasoning the analyze job runs on.
+      - name: Test
+        run: flutter test --reporter expanded
+
   build-android:
+    if: github.event_name == 'pull_request'
     name: Build (Android debug)
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +115,7 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
 
   build-ios:
+    if: github.event_name == 'pull_request'
     name: Build (iOS debug)
     runs-on: macos-15
     steps:
