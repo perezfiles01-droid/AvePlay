@@ -95,6 +95,72 @@ DiscoveryMedia kitsuMediaFrom(Map<String, dynamic> entry) {
   );
 }
 
+/// The home feed rows, answered by Kitsu when AniList will not.
+///
+/// Kitsu is a catalogue like AniList, so these return the same
+/// [DiscoveryMedia] the rows already render and nothing above them has to know
+/// which service answered. What Kitsu cannot do is match AniList row for row,
+/// and the differences are stated on each function rather than papered over:
+/// a row quietly showing something other than what its title claims is worse
+/// than a row that says the service is down.
+///
+/// Kitsu paginates with `page[limit]`, capped at 20 per request.
+int _kitsuLimit(int perPage) => perPage.clamp(1, 20);
+
+List<DiscoveryMedia> _kitsuMediaList(Map<String, dynamic>? body) => [
+  for (final entry in (body?["data"] as List? ?? const [])
+      .whereType<Map<String, dynamic>>())
+    kitsuMediaFrom(entry),
+];
+
+/// What is popular now.
+///
+/// AniList ranks by TRENDING_DESC, which is activity over the last few days.
+/// Kitsu has no trending metric, so this is its most-watched list: a slower
+/// ranking, and the closest honest equivalent.
+Future<List<DiscoveryMedia>> kitsuTrendingAnime({int perPage = 20}) async {
+  final body = await _get('/anime', {
+    'sort': '-userCount',
+    'page[limit]': '${_kitsuLimit(perPage)}',
+  });
+  return _kitsuMediaList(body);
+}
+
+/// The most popular anime of one season.
+///
+/// [season] arrives as an AniList MediaSeason name (WINTER/SPRING/SUMMER/FALL);
+/// Kitsu spells the same seasons in lower case, which is the only difference.
+Future<List<DiscoveryMedia>> kitsuSeasonAnime({
+  required String season,
+  required int year,
+  int perPage = 20,
+}) async {
+  final body = await _get('/anime', {
+    'filter[season]': season.toLowerCase(),
+    'filter[seasonYear]': '$year',
+    'sort': '-userCount',
+    'page[limit]': '${_kitsuLimit(perPage)}',
+  });
+  return _kitsuMediaList(body);
+}
+
+/// Anime currently airing, most recently started first.
+///
+/// This is the one row Kitsu cannot answer honestly. AniList builds it from the
+/// airing schedule read backwards over seven days, so it means "what got a new
+/// episode this week"; Kitsu publishes no airing schedule at all. The nearest
+/// thing is what is currently running, so that is what this returns, and the
+/// row says which service it came from rather than claiming a week that was
+/// never checked.
+Future<List<DiscoveryMedia>> kitsuCurrentlyAiringAnime({int perPage = 20}) async {
+  final body = await _get('/anime', {
+    'filter[status]': 'current',
+    'sort': '-startDate',
+    'page[limit]': '${_kitsuLimit(perPage)}',
+  });
+  return _kitsuMediaList(body);
+}
+
 /// Resolves [title] to a Kitsu id, or null when nothing is close enough.
 ///
 /// Asks for several and picks the one whose own titles match, rather than

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mangayomi/services/anilist_discovery.dart';
+import 'package:mangayomi/services/discovery/kitsu_discovery.dart';
 
 /// The AniList-backed rows on the home screen.
 ///
@@ -12,14 +13,51 @@ import 'package:mangayomi/services/anilist_discovery.dart';
 /// is kept for the life of the app rather than refetched on every visit; pull
 /// to refresh invalidates them explicitly.
 
+/// Asks [primary], and falls back to [fallback] when it will not answer.
+///
+/// Every row used to call AniList and nothing else, so an AniList outage left
+/// the whole home screen showing three error lines and no content.
+///
+/// It falls back on ANY failure of the primary, not only a recorded refusal: a
+/// malformed body and a GraphQL error throw a plain Exception, and those
+/// emptied the row exactly as thoroughly as a 403 did.
+///
+/// An empty answer is not a failure. A service that genuinely has nothing for
+/// this row is telling the truth, and covering that with another service's data
+/// would show last season under a heading naming this one.
+///
+/// When the fallback fails too, the primary's error is what propagates: it is
+/// the service the row is nominally showing, and its reason is the more useful
+/// one to put on screen.
+Future<List<DiscoveryMedia>> withDiscoveryFallback(
+  Future<List<DiscoveryMedia>> Function() primary,
+  Future<List<DiscoveryMedia>> Function() fallback,
+) async {
+  try {
+    return await primary();
+  } catch (primaryError) {
+    try {
+      return await fallback();
+    } catch (_) {
+      throw primaryError;
+    }
+  }
+}
+
 /// What is trending right now.
 final trendingAnimeProvider = FutureProvider<List<DiscoveryMedia>>(
-  (ref) => fetchTrendingAnime(),
+  (ref) => withDiscoveryFallback(fetchTrendingAnime, kitsuTrendingAnime),
 );
 
 /// Anime that had an episode air in the last week, newest first.
+///
+/// Kitsu has no airing schedule, so its stand-in is what is currently running.
+/// The row labels whichever service answered.
 final recentlyAiredAnimeProvider = FutureProvider<List<DiscoveryMedia>>(
-  (ref) => fetchRecentlyAiredAnime(),
+  (ref) => withDiscoveryFallback(
+    fetchRecentlyAiredAnime,
+    kitsuCurrentlyAiringAnime,
+  ),
 );
 
 /// The season the seasonal row is showing, as (MediaSeason name, year).
@@ -45,5 +83,8 @@ final selectedSeasonProvider = NotifierProvider<SelectedSeason, (String, int)>(
 /// The most popular anime of the selected season.
 final seasonAnimeProvider = FutureProvider<List<DiscoveryMedia>>((ref) {
   final (season, year) = ref.watch(selectedSeasonProvider);
-  return fetchSeasonAnime(season: season, year: year);
+  return withDiscoveryFallback(
+    () => fetchSeasonAnime(season: season, year: year),
+    () => kitsuSeasonAnime(season: season, year: year),
+  );
 });
