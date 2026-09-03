@@ -1,0 +1,27 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  views:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # The scanner is tested before the check that depends on it: a scanner
+      # that swallows source makes every view look balanced.
+      - name: Scanner self-test
+        run: node checks/check_views_selftest.mjs
+      - name: Views produce balanced markup
+        run: node checks/check_views.mjs
+      - name: Paged tables behave
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+          node checks/check_render.mjs
