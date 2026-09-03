@@ -5,9 +5,10 @@ Business Analyst projects — currently **GLASS**, **EDRMS ADB** and the **LHUB*
 Jira intake role — generated from `BA_Master_Tracker.xlsx` and served as a static
 site.
 
-> ⚠️ This repository is **private** on purpose. The workbook and the generated
-> `data/tracker.json` contain internal AvePoint and ADB SharePoint URLs and work
-> email addresses. Read [Going live](#going-live) before making it public.
+> ⚠️ This repository is **public** so that GitHub Pages is free. Account email
+> addresses in `data/tracker.json` are masked, `robots.txt` and a `noindex` tag
+> keep it out of search engines, and the source workbook is git-ignored. The
+> SharePoint URLs are published as-is — they all require a login.
 
 ## What's in here
 

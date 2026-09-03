@@ -4,6 +4,7 @@
 Usage: python3 scripts/build_data.py path/to/BA_Master_Tracker.xlsx
 Re-run this whenever the workbook changes, then commit data/tracker.json.
 """
+import argparse
 import json
 import re
 import sys
@@ -30,6 +31,16 @@ def resolve(target):
     # ":x:/r/sites/..." and "sites/..." re-root cleanly; anything else is a guess.
     certain = rest.startswith(":") or rest.startswith("sites/") or rest.startswith("teams/")
     return resolved, certain
+
+
+REDACT = False
+
+
+def maybe_redact(value):
+    """With --redact-emails, keep the mailbox hint but drop the harvestable address."""
+    if not REDACT or not isinstance(value, str) or "@" not in value:
+        return value
+    return re.sub(r"([\w.+-]+)@([\w.-]+)", lambda m: m.group(1)[:2] + "\u2026@" + m.group(2), value)
 
 
 def cell(ws, coord):
@@ -113,7 +124,7 @@ def build(path):
             "label": c["text"] or "link",
             "url": c["url"],
             "verified": c["verified"],
-            "account": (acct["text"] or "").replace("mailto:", "") if acct["text"] else None,
+            "account": maybe_redact((acct["text"] or "").replace("mailto:", "")) if acct["text"] else None,
         })
 
     # R2026.2 concerns
@@ -248,8 +259,14 @@ def build(path):
 
 
 if __name__ == "__main__":
-    src = sys.argv[1] if len(sys.argv) > 1 else "BA_Master_Tracker.xlsx"
-    data = build(src)
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("workbook", nargs="?", default="BA_Master_Tracker.xlsx")
+    ap.add_argument("--redact-emails", action="store_true",
+                    help="mask the account email addresses (use when the repository is public)")
+    args = ap.parse_args()
+    REDACT = args.redact_emails
+    globals()["REDACT"] = args.redact_emails
+    data = build(args.workbook)
     dest = Path(__file__).resolve().parent.parent / "data" / "tracker.json"
     dest.parent.mkdir(exist_ok=True)
     dest.write_text(json.dumps(data, indent=1, ensure_ascii=False))

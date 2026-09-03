@@ -1,90 +1,134 @@
-# Creating the Tracker repository
+# Publishing Tracker on GitHub Pages (public)
 
-Everything in this folder is the complete site. My GitHub access in this session is
-scoped to `perezfiles01-droid/aveplay` and cannot create new repositories, so the
-repository itself has to be created from your account. It takes about two minutes.
+The repository will be **public**, which is what makes GitHub Pages free.
+Two safeguards are already applied:
 
-## 1. Create the repository
+- `robots.txt` and a `noindex` meta tag keep the site out of Google results.
+- The account email addresses in `data/tracker.json` are masked
+  (`ji…@avepoint.com`) so they cannot be scraped, while still telling you
+  which account each site needs.
 
-<https://github.com/new>
+To publish the real addresses instead, rebuild without the flag:
+`python3 scripts/build_data.py BA_Master_Tracker.xlsx` (no `--redact-emails`).
 
-- **Repository name:** `Tracker`
-- **Visibility:** **Private** ← the data contains internal AvePoint/ADB SharePoint
-  URLs and work email addresses
-- Do **not** add a README, .gitignore or licence (this folder already has them)
-
-## 2. Push this folder into it
-
-From a machine with git, after downloading this `tracker/` folder (or the zip I sent):
-
-```bash
-cd tracker
-git init -b main
-git add .
-git commit -m "Tracker site: project links, documents and Drive integration"
-git remote add origin https://github.com/perezfiles01-droid/Tracker.git
-git push -u origin main
-```
-
-No git installed? On the new empty repository page click **uploading an existing file**
-and drag the whole folder in. Keep the folder structure (`assets/`, `data/`,
-`scripts/`, `.github/`).
-
-## 3. Add the workbook
-
-Upload `BA_Master_Tracker.xlsx` to the repository root (Add file → Upload files).
-That enables the *Rebuild tracker data* workflow, so the site refreshes itself
-whenever you push a newer workbook.
-
-## 4. Turn the site on
-
-**Settings → Pages → Build and deployment → Source: GitHub Actions.**
-The included `.github/workflows/pages.yml` publishes on every push to `main`;
-your URL will be `https://perezfiles01-droid.github.io/Tracker/`.
-
-GitHub Pages on a **private** repository needs a paid plan (Pro, ~$4/month).
-Free alternatives that keep it private:
-
-- **Cloudflare Pages + Cloudflare Access** — free, connects to the GitHub repo,
-  and you can restrict it to your own email address. Best option if you want it
-  live and private.
-- **Netlify** — free tier, site password protection is a paid add-on.
-- **Local only** — `python3 -m http.server 8000` in the folder, open
-  <http://localhost:8000>. Costs nothing and never leaves your machine.
-
-Making the repository public would give you free Pages, but every internal link
-and email address in `data/tracker.json` becomes publicly searchable. I would not.
-
-## 5. Connect Google Drive
-
-Full walkthrough in `README.md` → *Connecting Google Drive*. Short version:
-
-1. <https://console.cloud.google.com/> → create a project.
-2. **APIs & Services → Library** → enable **Google Drive API**.
-3. **OAuth consent screen** → Internal if your Workspace allows, else External +
-   add yourself as a test user → add scope `.../auth/drive.readonly`.
-4. **Credentials → Create credentials → OAuth client ID → Web application** →
-   *Authorised JavaScript origins*: `http://localhost:8000` and your live URL.
-5. Copy the Client ID → open the site → **Settings** → paste → Save.
-6. **Google Drive** in the sidebar → **Connect Google Drive**.
-
-The Client ID is stored in your browser only, never in the repository.
+The SharePoint URLs themselves are published as-is. They all require a login,
+so this exposes site names and structure, not documents.
 
 ---
 
-## Quickest start: no server at all
+## Step 1 — Create the repository
 
-`Tracker-standalone.html` is the entire site — CSS, JavaScript and data — inlined
-into one file. Save it anywhere and double-click it. Everything works offline:
-search, filters, sortable tables, every project page, Export JSON.
+Go to <https://github.com/new>
 
-The one thing it *cannot* do from `file://` is Google Drive sign-in: Google
-rejects OAuth from a page with no web origin. Drive needs the site served over
-`http://localhost:8000` or a real URL.
+| Field | Value |
+| --- | --- |
+| Repository name | `Tracker` |
+| Description | `Project links, documents and trackers` |
+| Visibility | **Public** |
+| Add a README | **leave unticked** |
+| .gitignore / licence | **None** |
 
-Rebuild it after changing the workbook:
+Click **Create repository**. You land on a page headed *"Quick setup"*.
+
+## Step 2 — Upload the files
+
+On that page click **uploading an existing file**
+(or go to `https://github.com/perezfiles01-droid/Tracker/upload/main`).
+
+Unzip the `Tracker-site.zip` I sent, open the folder, select **everything inside
+it** (Ctrl+A) and drag it onto the upload box. Folders keep their structure.
+
+You must end up with this at the top level of the repository:
+
+```
+index.html
+config.js
+robots.txt
+README.md
+SETUP.md
+Tracker-standalone.html
+assets/      (app.js, drive.js, styles.css, favicon.svg)
+data/        (tracker.json)
+scripts/     (build_data.py, build_standalone.py)
+.github/     (workflows/pages.yml)
+```
+
+If `.github` did not upload (Windows hides dot-folders in some dialogs), create it
+by hand: **Add file → Create new file**, type
+`.github/workflows/pages.yml` as the name — typing the slashes creates the
+folders — and paste the contents of that file from the zip.
+
+Commit message: `Tracker site`. Click **Commit changes**.
+
+## Step 3 — Turn on Pages
+
+1. Repository **Settings** (top row of the repo, not your account settings)
+2. **Pages** in the left sidebar
+3. **Build and deployment → Source** → select **GitHub Actions**
+
+That is the whole configuration — there is no Save button; selecting the source
+is enough. The workflow in `.github/workflows/pages.yml` takes over.
+
+## Step 4 — Watch the first deploy
+
+Open the **Actions** tab. A run called *Deploy site to GitHub Pages* starts
+within a few seconds and takes about a minute. Green tick = live.
+
+Your URL: **https://perezfiles01-droid.github.io/Tracker/**
+
+It also appears back on Settings → Pages once the first deploy finishes.
+
+If Actions shows nothing, you skipped step 3 — go back and set the source, then
+**Actions → Deploy site to GitHub Pages → Run workflow**.
+
+## Step 5 — Point Google OAuth at the live URL
+
+<https://console.cloud.google.com/auth/clients> → click **Tracker site**
+
+Under **Authorised JavaScript origins**, make sure this exact value is listed
+(no trailing slash, no `/Tracker` path):
+
+```
+https://perezfiles01-droid.github.io
+```
+
+**Save.** Google takes a few minutes to propagate; if sign-in fails with
+`redirect_uri_mismatch` or `origin_mismatch`, wait five minutes and retry.
+
+## Step 6 — Connect Drive
+
+1. Open <https://perezfiles01-droid.github.io/Tracker/>
+2. Sidebar → **Settings** → paste the **Client ID** → **Save**
+3. Sidebar → **Google Drive** → **Connect Google Drive** → pick your account
+4. On the "Google hasn't verified this app" screen: **Advanced → Go to Tracker
+   (unsafe)**. That warning is expected for your own unverified app.
+5. Your recent Drive files list — **Pin to tracker** on any of them
+
+The Client ID is safe to have in a public site; Google client IDs are designed to
+be visible. Pinned links are stored in your browser only.
+
+## Updating it later
+
+**Do not upload `BA_Master_Tracker.xlsx` to this repository.** It is a public
+repository and the workbook holds the unredacted email addresses and every raw
+link. `.gitignore` blocks it, and there is no rebuild workflow for that reason.
+
+Instead, rebuild on your own machine and commit only the generated files:
 
 ```bash
-python3 scripts/build_data.py BA_Master_Tracker.xlsx
+python3 scripts/build_data.py BA_Master_Tracker.xlsx --redact-emails
 python3 scripts/build_standalone.py
 ```
+
+Then upload the changed `data/tracker.json` and `Tracker-standalone.html`
+through the GitHub web UI. Pages redeploys automatically on every commit
+to `main`.
+
+No Python on your machine? Send me the updated workbook here and I will
+regenerate both files for you to upload.
+
+## Making it private again
+
+Settings → General → bottom → **Change repository visibility → Private**.
+Pages then stops serving unless you have GitHub Pro. The site keeps working
+locally via `Tracker-standalone.html`.
